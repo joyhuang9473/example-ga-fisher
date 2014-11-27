@@ -23,9 +23,9 @@ while (1==1)
        OutputName=Recognition(m, A, Eigenfaces);
        n=((OutputName+1)/2);
        
-       im=imread('InputImage.bmp');
+       im=imread('InputImage.jpg');
        cd ..;
-       img=strcat('TrainDatabase\',int2str(n),'\1.bmp');
+       img=strcat('TrainDatabase\',int2str(n),'\1.jpg');
        SelectedImage=imread(img);
        subplot(121);
        imshow(im)
