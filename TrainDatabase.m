@@ -15,23 +15,25 @@ function T = TrainDatabase(TrainDatabasePath)
 %
 %%%%%%%%%%%%%%%%%%%%%%%% File management
 
- no_folder=size(dir([TrainDatabasePath,'\*']),1)-size(dir([TrainDatabasePath,'\*m']),1)-2;
+%  no_folder=size(dir([TrainDatabasePath,'\*']),1)-size(dir([TrainDatabasePath,'\*m']),1)-2;
+no_folder = 49;
 %%%%%%%%%%%%%%%%%%%%%%%% Construction of 2D matrix from 1D image vectors
 T = [];
 disp('Loading Faces');
 for i = 1 : no_folder
     stk = int2str(i);
     disp(stk);
-    stk = strcat('\s',stk,'\*jpg');
+    stk = strcat('\',stk,'\*bmp');
     folder_content = dir ([TrainDatabasePath,stk]);
-    nface = size (folder_content,1);
+%     nface = size (folder_content,1);
+    nface = 10;
     disp(nface);
 for j = 1 :  nface
     % I have chosen the name of each image in databases as a corresponding
     % number. However, it is not mandatory!
     str = int2str(j);
-    str = strcat('\',str,'.jpg');
-    str = strcat('\s',int2str(i),str);
+    str = strcat('\',str,'.bmp');
+    str = strcat('\',int2str(i),str);
     str = strcat(TrainDatabasePath,str);
     img = imread(str);    
 %     img = rgb2gray(img);
