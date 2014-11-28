@@ -1,4 +1,4 @@
-function T = TrainDatabase(TrainDatabasePath)
+function T = TrainDatabase(TrainDatabasePath, train_nface)
 % Align a set of face images (the training set T1, T2, ... , TM )
 %
 % Description: This function reshapes all 2D images of the training database
@@ -16,29 +16,36 @@ function T = TrainDatabase(TrainDatabasePath)
 %%%%%%%%%%%%%%%%%%%%%%%% File management
 
 %  no_folder=size(dir([TrainDatabasePath,'\*']),1)-size(dir([TrainDatabasePath,'\*m']),1)-2;
-no_folder = 10;
+no_folder = 49;
 %%%%%%%%%%%%%%%%%%%%%%%% Construction of 2D matrix from 1D image vectors
 T = [];
 disp('Loading Faces');
 for i = 1 : no_folder
     stk = int2str(i);
     disp(stk);
-    stk = strcat('\',stk,'\*jpg');
+    stk = strcat('\',stk,'\*bmp');
     folder_content = dir ([TrainDatabasePath,stk]);
 %     nface = size (folder_content,1);
-    nface = 2;
+    nface = train_nface;    % Choose how many pictures of one person to train.
     disp(nface);
 for j = 1 :  nface
-    % I have chosen the name of each image in databases as a corresponding
-    % number. However, it is not mandatory!
     str = int2str(j);
-    str = strcat('\',str,'.jpg');
+    str = strcat('\',str,'.bmp');
     str = strcat('\',int2str(i),str);
     str = strcat(TrainDatabasePath,str);
-    img = imread(str);    
-%     img = rgb2gray(img);
-    img = 0.2989 * img(:,:,1) + 0.5870 * img(:,:,2) + 0.1140 * img(:,:,3);  % convert an RGB image to grayscale
     
+    %To detect Face
+    FDetect = vision.CascadeObjectDetector;
+    img = imread(str);
+
+    %Returns Bounding Box values based on number of objects
+    BB = step(FDetect,img);
+    % step(Detector,I) returns Bounding Box value that contains [x,y,Height,Width].
+
+    img = imcrop(img,BB);
+    img = imresize(img, [250 250]);
+          
+    img = rgb2gray(img);
     [irow icol] = size(img);
    
     temp = reshape(img',irow*icol,1);   % Reshaping 2D images into 1D image vectors

@@ -1,4 +1,4 @@
-function [ OutputName ] = FaceRec(m, A, Eigenfaces)
+function [ OutputName ] = FaceRec(m, A, Eigenfaces,train_nface)
 cd TestImage;
 while (1==1)
     choice=menu('Face Recognition',...
@@ -8,11 +8,22 @@ while (1==1)
                 'Exit');
     if (choice ==1)
        try cd TestImage;close all; end; 
-         ChooseFile = imgetfile;
-         capcha = imread(ChooseFile);
-         capcha = imcrop(capcha,[180,20,280,380]);
-         imshow(capcha);
-         saveimage(capcha);
+        ChooseFile = imgetfile;
+
+        %To detect Face
+        FDetect = vision.CascadeObjectDetector;
+        capcha = imread(ChooseFile);
+
+        %Returns Bounding Box values based on number of objects
+        BB = step(FDetect,capcha);
+        % step(Detector,I) returns Bounding Box value that contains [x,y,Height,Width].
+
+        capcha = imcrop(capcha,BB);
+        capcha = imresize(capcha, [250 250]);
+
+        figure,
+        imshow(capcha);
+        saveimage(capcha);
     end
     if (choice == 2)
         try cd TestImage;close all; end;
@@ -21,11 +32,12 @@ while (1==1)
     end    
     if (choice == 3)
        OutputName=Recognition(m, A, Eigenfaces);
-       n=((OutputName+1)/2);
+        n=((OutputName+1)/train_nface); % Calculate which person is the correct answer
+
        
-       im=imread('InputImage.jpg');
+       im=imread('InputImage.bmp');
        cd ..;
-       img=strcat('TrainDatabase\',int2str(n),'\1.jpg');
+       img=strcat('TrainDatabase\',int2str(n),'\1.bmp');
        SelectedImage=imread(img);
        subplot(121);
        imshow(im)

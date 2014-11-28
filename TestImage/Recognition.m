@@ -29,7 +29,7 @@ for i = 1 : Train_Number
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%% Extracting the PCA features from test image
-InputImage = imread('InputImage.jpg');
+InputImage = imread('InputImage.bmp');
 temp = InputImage(:,:,1);
 
 [irow icol] = size(temp);

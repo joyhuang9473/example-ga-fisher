@@ -1,5 +1,5 @@
 function [ ] = saveimage( capcha )
-imwrite(capcha,'InputImage.jpg');
+imwrite(capcha,'InputImage.bmp');
 
 end
 

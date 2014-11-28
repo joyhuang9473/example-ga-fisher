@@ -1,7 +1,10 @@
 %Main
-close all
-clear all
-clc
+% close all
+% clear all
+% clc
+
+train_nface = 6; % Choose how many pictures of one person to train.
+
 while (1==1)
     choice=menu('Face Attendance System',...
                 'Create Database of Faces',...
@@ -18,13 +21,14 @@ while (1==1)
     end
     
     if (choice ==3)
-        [m, A, Eigenfaces]=Trainit;
+        
+        [m, A, Eigenfaces]=Trainit (train_nface);
     end
     if (choice == 4)
         if exist('train.mat');
             load train;
         end
-        FaceRec(m, A, Eigenfaces);
+        FaceRec(m, A, Eigenfaces, train_nface);
     end
    
     if (choice == 5)
