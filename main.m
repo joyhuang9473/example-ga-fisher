@@ -3,7 +3,7 @@
 % clear all
 % clc
 
-train_nface = 6; % Choose how many pictures of one person to train.
+train_nface = 10; % Choose how many pictures of one person to train.
 
 while (1==1)
     choice=menu('Face Attendance System',...

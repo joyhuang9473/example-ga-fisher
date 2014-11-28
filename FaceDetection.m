@@ -1,20 +1,22 @@
  cd TestImage;close all; 
- ChooseFile = imgetfile;
-         
-%To detect Face
+ 
+ %To detect Face
 FDetect = vision.CascadeObjectDetector;
+ for i =1 : 10
+ ChooseFile = imgetfile;       
+
 capcha = imread(ChooseFile);
 
 %Returns Bounding Box values based on number of objects
-BB = step(FDetect,capcha);
+CC = step(FDetect,capcha);
 % step(Detector,I) returns Bounding Box value that contains [x,y,Height,Width].
 
-capcha = imcrop(capcha,BB);
+capcha = imcrop(capcha,CC);
 capcha = imresize(capcha, [250 250]);
 
 figure,
 imshow(capcha);
-
+ end
 % 
 % figure,
 % imshow(I); hold on

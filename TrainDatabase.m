@@ -20,31 +20,41 @@ no_folder = 49;
 %%%%%%%%%%%%%%%%%%%%%%%% Construction of 2D matrix from 1D image vectors
 T = [];
 disp('Loading Faces');
+
+ %To detect Face
+    FDetect = vision.CascadeObjectDetector;
+nface = train_nface;    % Choose how many pictures of one person to train.
 for i = 1 : no_folder
     stk = int2str(i);
     disp(stk);
     stk = strcat('\',stk,'\*bmp');
     folder_content = dir ([TrainDatabasePath,stk]);
 %     nface = size (folder_content,1);
-    nface = train_nface;    % Choose how many pictures of one person to train.
+    
     disp(nface);
 for j = 1 :  nface
     str = int2str(j);
     str = strcat('\',str,'.bmp');
     str = strcat('\',int2str(i),str);
-    str = strcat(TrainDatabasePath,str);
-    
-    %To detect Face
-    FDetect = vision.CascadeObjectDetector;
+    str = strcat(TrainDatabasePath,str); 
+   
     img = imread(str);
 
     %Returns Bounding Box values based on number of objects
     BB = step(FDetect,img);
     % step(Detector,I) returns Bounding Box value that contains [x,y,Height,Width].
 
-    img = imcrop(img,BB);
-    img = imresize(img, [250 250]);
-          
+    %因為偶爾會跑出 irow==2 的情況，有可能同一張圖上抓到兩張臉，所以先暫時去掉，只取第二個臉
+    [irow icol] = size(BB);
+    if irow==2
+        N = ndims(BB)
+        img = imcrop(img,BB(2,:));
+        save bb;
+    else
+        img = imcrop(img,BB);
+    end
+    
+    img = imresize(img, [250 250]);          
     img = rgb2gray(img);
     [irow icol] = size(img);
    

@@ -1,7 +1,7 @@
 function [m, A, Eigenfaces]=Trainit(train_nface)% A sample script, which shows the usage of functions, included in
 % PCA-based face recognition system (Eigenface method)
 
-% 
+
 % clear all
 % clc
 % close all
