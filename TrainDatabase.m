@@ -44,7 +44,7 @@ for j = 1 :  nface
     BB = step(FDetect,img);
     % step(Detector,I) returns Bounding Box value that contains [x,y,Height,Width].
 
-    %因為偶爾會跑出 irow==2 的情況，有可能同一張圖上抓到兩張臉，所以先暫時去掉，只取第二個臉
+    % Somtimes the program will catch more than 1 face in a picture, such as irow==2, so we choose the second face only.
     [irow icol] = size(BB);
     if irow==2
         N = ndims(BB)
