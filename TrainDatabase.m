@@ -28,6 +28,10 @@ function [T, C] = TrainDatabase(TrainDatabasePath, train_nface)
     C = zeros(1, image_num_total);
     disp('Loading Faces:');
 
+    if ~exist('TrainDatabasePath', 'var') || isempty(TrainDatabasePath)
+        TrainDatabasePath = 'TrainDatabase';
+    end
+    
  %To detect Face
     FDetect = vision.CascadeObjectDetector;
     img_idx = 1;

@@ -1,4 +1,3 @@
-
 function [ OutputName ] = FaceRec(Wopt, M, U)
     % cd TestImage;
     
@@ -14,18 +13,18 @@ function [ OutputName ] = FaceRec(Wopt, M, U)
 
             %To detect Face
             FDetect = vision.CascadeObjectDetector;
-            capcha = imread(ChooseFile);
+            image = imread(ChooseFile);
 
             %Returns Bounding Box values based on number of objects
-            BB = step(FDetect,capcha);
+            BB = step(FDetect,image);
             % step(Detector,I) returns Bounding Box value that contains [x,y,Height,Width].
 
-            capcha = imcrop(capcha, BB);
-            capcha = imresize(capcha, [250 250]);
+            image = imcrop(image, BB);
+            image = imresize(image, [60 80]);
 
             figure,
-            imshow(capcha);
-            saveimage(capcha);
+            imshow(image);
+            % saveimage(capcha);
         end
         
         if (choice == 2)
@@ -34,20 +33,18 @@ function [ OutputName ] = FaceRec(Wopt, M, U)
         end
         
         if (choice == 3)
-            OutputName=Recognition(m, A, Eigenfaces);
-            n=((OutputName+1)/train_nface); % Calculate which person is the correct answer
-
-
-            im=imread('InputImage.bmp');
-            cd ..;
+            % OutputName=Recognition(m, A, Eigenfaces);
+            % n=((OutputName+1)/train_nface); % Calculate which person is the correct answer
+            n = Recognition(Wopt, U, image);
             img=strcat('TrainDatabase\',int2str(n),'\1.bmp');
-            SelectedImage=imread(img);
+            SelectedImage = imread(img);
             subplot(121);
-            imshow(im)
+            imshow(image)
             title('Test Image');
             subplot(122),imshow(SelectedImage);
             n = int8(n);
-            name_str = strcat('Equivalent Image : ',name(1,n));
+            OutputName = name(1,n);
+            name_str = strcat('Equivalent Image : ', OutputName);
             title(name_str);
             
             disp('Student No');
