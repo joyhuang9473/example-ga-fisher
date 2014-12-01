@@ -1,5 +1,7 @@
 function [ OutputName ] = FaceRec(m, A, Eigenfaces,train_nface)
 cd TestImage;
+load name.mat;
+
 while (1==1)
     choice=menu('Face Recognition',...
                 'Input Image From File',...
@@ -43,7 +45,10 @@ while (1==1)
        imshow(im)
     title('Test Image');
     subplot(122),imshow(SelectedImage);
-    title('Equivalent Image');
+    
+    n = int8(n);
+    name_str = strcat('Equivalent Image : name ',name(1,n));
+    title(name_str);
        disp('Student No');
        disp(int2str(n));
        
