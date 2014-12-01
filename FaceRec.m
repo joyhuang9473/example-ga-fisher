@@ -1,5 +1,7 @@
+
 function [ OutputName ] = FaceRec(Wopt, M, U)
     % cd TestImage;
+    
     while (1 == 1)
         choice=menu('Face Recognition',...
                     'Input Image From File',...
@@ -44,7 +46,10 @@ function [ OutputName ] = FaceRec(Wopt, M, U)
             imshow(im)
             title('Test Image');
             subplot(122),imshow(SelectedImage);
-            title('Equivalent Image');
+            n = int8(n);
+            name_str = strcat('Equivalent Image : ',name(1,n));
+            title(name_str);
+            
             disp('Student No');
             disp(int2str(n));
         end
@@ -54,6 +59,7 @@ function [ OutputName ] = FaceRec(Wopt, M, U)
             close all;
             return;
         end
+
     end    
 end
 
