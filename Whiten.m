@@ -2,11 +2,8 @@ function [Wopt] = Whiten(Sw, Sb, Wga, Lga, Wconj, S)
 %% Process a whitening procedure
 
     %% turn Lga to diag matrix
-    col_Lga = Lga';
-    diag_Lga = diag(col_Lga.^(-1/2));
-    Wga_whiten = Wga * diag_Lga;
-
-    clear col_Lga diag_Lga;
+    Wga_whiten = Wga * diag(Lga .^ (-1/2));
+    
     %% Computing Wlda
     if ~exist('Wconj', 'var') || isempty(Wconj)
         [Wconj, S] = eig(Sb,Sw);
@@ -20,6 +17,6 @@ function [Wopt] = Whiten(Sw, Sb, Wga, Lga, Wconj, S)
     Wlda = pinv(Wga_whiten) * Wconj;
 
     %% Get optimal projection for GA-Fisher
-    Wopt_transpose = Wlda' * Wga_whiten';
-    Wopt = Wopt_transpose';
+    Wopt_transpose = Wlda.' * Wga_whiten.';
+    Wopt = Wopt_transpose.';
 end
