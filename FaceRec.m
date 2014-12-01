@@ -1,59 +1,49 @@
-function [ OutputName ] = FaceRec(Wopt, M, U)
-    % cd TestImage;
+function [ OutputName ] = FaceRec(W, Xt, Ct)
+    if exist('name.mat', 'file');
+        load('name.mat');
+        fprintf(1, 'name.mat is loaded');
+    else
+        name = cell(1,49);
+        for i = 1:49
+            name{i} = sprintf('class %02d', i);
+        end
+    end
     
     while (1 == 1)
         choice=menu('Face Recognition',...
-                    'Load Image File',...
-                    'Recognition',...
+                    '      Load Image      ',...
                     'Exit');
+                
         if (choice ==1)
-            % try cd TestImage; close all; end; 
-            ChooseFile = imgetfile;
-
-            %To detect Face
-            FDetect = vision.CascadeObjectDetector;
-            image = imread(ChooseFile);
-
-            %Returns Bounding Box values based on number of objects
-            BB = step(FDetect,image);
-            % step(Detector,I) returns Bounding Box value that contains [x,y,Height,Width].
-
-            image = imcrop(image, BB);
-            figure, imshow(image);
-            % image = imresize(image, [80 60]);
-            % saveimage(capcha);
-        end
-        
-%         if (choice == 2)
-%             try cd TestImage;close all; end;
-%             capturenow;
-%         end
-        
-        if (choice == 2)
-            if exist('name.mat', 'var');
-                load('name.mat');
-            else
-                name = 1:49;
-            end
-            % OutputName=Recognition(m, A, Eigenfaces);
-            % n=((OutputName+1)/train_nface); % Calculate which person is the correct answer
-            n = Recognition(Wopt, M, U, image);
-            img=strcat('TrainDatabase\',int2str(n),'\1.bmp');
-            SelectedImage = imread(img);
-            subplot(121);
-            imshow(image)
-            title('Test Image');
-            subplot(122),imshow(SelectedImage);
-            n = int8(n);
-            OutputName = name(n);
-            name_str = strcat('Equivalent Image : ', OutputName);
-            title(name_str);
+            Xq = zeros(80 * 60, 1);
+            InputName = imgetfile();
+            [Xq(:,1), test] = LoadImage(InputName);
             
-            disp('Student No');
-            disp(int2str(n));
+            %% recognition
+            Yq = cvLdaProj(Xq, W);
+            Yt = cvLdaProj(Xt, W);
+            [Classified, ~] = cvKnn(Yq, Yt, Ct, 1);
+            n = Classified(1);
+            
+            %% display result
+            imgpath = strcat('TrainDatabase\',int2str(n),'\1.bmp');
+            [~, recog_result] = LoadImage(imgpath);
+            OutputName = name{n};
+            
+            name_idx = regexp(InputName, '.[0-9]+.[0-9]+.(bmp|BMP)');
+            if ~isempty(name_idx)
+                InputName = InputName(name_idx:end);
+            end
+            subplot(121), imshow(test)
+            title(InputName);
+            
+            subplot(122),imshow(recog_result);
+            title(OutputName);
+            
+            fprintf(1, 'Student No %d: %s\n', n, OutputName);
         end
 
-        if (choice == 3) 
+        if (choice == 2) 
             clc; 
             close all;
             return;

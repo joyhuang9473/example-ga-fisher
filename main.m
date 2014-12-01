@@ -24,24 +24,24 @@ function main
         end
 
        if (choice == 2)
-            if exist('train.mat', 'var');
-                load('train.mat', 'Wopt', 'M', 'U');
+            if exist('train.mat', 'file');
+                load('train.mat');
             end
             % CalRecRate(m, A, Eigenfaces, test_nface, train_nface);
-            CalRecRate([], test_nface, Wopt, M, U);
+            CalRecRate([], test_nface, Wopt, Xt, Ct);
         end
         
 
         if (choice == 3)
-            [Wopt, M, U] = Trainit(train_nface);
-            save('train.mat', 'Wopt', 'M', 'U');
+            [Wopt, Xt, Ct] = Trainit(train_nface);
+            save('train.mat', 'Wopt', 'Xt', 'Ct');
         end
 
         if (choice == 4)
-            if exist('train.mat', 'var');
-                load('train.mat', 'Wopt', 'M', 'U');
+            if exist('train.mat', 'file');
+                load('train.mat');
             end
-            FaceRec(Wopt, M, U);
+            FaceRec(Wopt, Xt, Ct);
         end
 
         if (choice == 5)
