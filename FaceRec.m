@@ -1,4 +1,4 @@
-function [ OutputName ] = FaceRec(Wopt, ~, U)
+function [ OutputName ] = FaceRec(Wopt, M, U)
     % cd TestImage;
     
     while (1 == 1)
@@ -20,8 +20,7 @@ function [ OutputName ] = FaceRec(Wopt, ~, U)
 
             image = imcrop(image, BB);
             figure, imshow(image);
-            image = imresize(image, [80 60]);
-
+            % image = imresize(image, [80 60]);
             % saveimage(capcha);
         end
         
@@ -38,7 +37,7 @@ function [ OutputName ] = FaceRec(Wopt, ~, U)
             end
             % OutputName=Recognition(m, A, Eigenfaces);
             % n=((OutputName+1)/train_nface); % Calculate which person is the correct answer
-            n = Recognition(Wopt, U, image);
+            n = Recognition(Wopt, M, U, image);
             img=strcat('TrainDatabase\',int2str(n),'\1.bmp');
             SelectedImage = imread(img);
             subplot(121);

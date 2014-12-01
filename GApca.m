@@ -156,12 +156,11 @@ function F = fitness(enc)
         sigma = sigma + (t * t');
     end
     sigma = sigma / N;
-    if det(sigma) ~= 0
-        sigma = inv(sigma);
-    else
+    try
+        sigma = (sigma / N) ^ (-1);
+    catch
         sigma = pinv(sigma);
     end
-%     sigma = (sigma / N) ^ (-1);
     d = inf;
     for i = 1:K
         t = (P * U(:,i)) - m;
