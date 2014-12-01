@@ -20,19 +20,19 @@ function [T, C] = TrainDatabase(TrainDatabasePath, train_nface)
 %  no_folder=size(dir([TrainDatabasePath,'\*']),1)-size(dir([TrainDatabasePath,'\*m']),1)-2;
     no_folder = 49;
     nface = train_nface;    % Choose how many pictures of one person to train.
-    resize_dim = [60 80];
+    resize_dim = [80 60];
 %%%%%%%%%%%%%%%%%%%%%%%% Construction of 2D matrix from 1D image vectors
     image_dim = resize_dim(1) * resize_dim(2);
     image_num_total = no_folder * nface;
     T = zeros(image_dim, image_num_total);
     C = zeros(1, image_num_total);
-    disp('Loading Faces:');
 
     if ~exist('TrainDatabasePath', 'var') || isempty(TrainDatabasePath)
-        TrainDatabasePath = 'TrainDatabase';
+        TrainDatabasePath = uigetdir('TrainDatabase\', 'Select training database path' );
     end
     
- %To detect Face
+    disp('Loading Faces:');
+    % To detect Face
     FDetect = vision.CascadeObjectDetector;
     img_idx = 1;
     for i = 1 : no_folder

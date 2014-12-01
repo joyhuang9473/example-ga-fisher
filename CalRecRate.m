@@ -1,4 +1,4 @@
-function rec_rate = CalRecRate(TrainDatabasePath, train_nface, Wopt, U)
+function rec_rate = CalRecRate(TrainDatabasePath, test_nface, Wopt, ~, Upj)
     disp('Calculate recognition rate...');
 %     cd TestImage
 
@@ -7,20 +7,20 @@ function rec_rate = CalRecRate(TrainDatabasePath, train_nface, Wopt, U)
     total_pass = 0;
     % TrainDatabasePath = uigetdir('E:\facerec\TestImage\', 'Select test database' );
     if ~exist('TrainDatabasePath', 'var') || isempty(TrainDatabasePath)
-        TrainDatabasePath = 'TrainDatabase';
+        TrainDatabasePath = uigetdir('TrainDatabase\', 'Select training database path' );
     end
     
     for i = 1 : no_folder
         fprintf(1, 'Class %d:\n', i);
-        for j = train_nface+1 : 100
+        for j = 100-test_nface+1 : 100
             str = int2str(j);
             str = strcat('\',str,'.bmp');
             str = strcat('\',int2str(i),str);
             str = strcat(TrainDatabasePath,str); 
-            fprintf(1, 'loading %s...', str);
+            fprintf(1, 'testing %s... ', str);
             img = imread(str);
             
-            n = Recognition(Wopt, U, img);
+            n = Recognition(Wopt, Upj, img);
 %             imwrite(img,'InputImage.bmp');
 %             
 %             %-----------------------------------------
@@ -60,7 +60,10 @@ function rec_rate = CalRecRate(TrainDatabasePath, train_nface, Wopt, U)
 %             
 %             n=((OutputName+1)/train_nface); % Calculate which person is the correct answer
             if n == i
+                fprintf(1, 'OK\n');
                 correct = correct +1;
+            else
+                fprintf(1, 'BAD\n');
             end
             total_pass = total_pass + 1;
         end
