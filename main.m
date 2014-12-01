@@ -1,35 +1,34 @@
 function main
-    % close all
-    % clear all
-    % clc
-    % moporgic
+    train_nface = 10;
+    test_nface = 90;
 
-    prompt = 'How many pictures for taining?(per person) ';
-    train_nface = input(prompt);
-    train_nface = int8(train_nface);
-
-    prompt = 'How many pictures for test?(per person) ';
-    test_nface = input(prompt);
-    test_nface = int8(test_nface);
-    
     while (1==1)
         choice=menu('Face Attendance System',...
-                    'Create Database of Faces',...
+                    'Set Training/Testing',...
                     'Calculate recognition rate',...
                     'Train System',...
                     'Face Recognition',...
                     'Exit');
 
         if (choice ==1)
-            clear all;
-            CreateDatabase;
+            %clear all;
+            %CreateDatabase;
+            prompt1 = 'How many pictures for training? (per person)';
+            prompt2 = 'How many pictures for testing? (per person)';
+            coef = inputdlg({prompt1, prompt2});
+            if ~isempty(coef)
+                train_nface = int8(str2double(coef{1}));
+                test_nface = int8(str2double(coef{2}));
+            end
+            fprintf(1, 'training: %d  testing: %d\n', train_nface, test_nface);
         end
 
        if (choice == 2)
-            if exist('train.mat');
-                load train;
+            if exist('train.mat', 'var');
+                load('train.mat', 'Wopt', 'M', 'U');
             end
-            CalRecRate(m, A, Eigenfaces, test_nface, train_nface);
+            % CalRecRate(m, A, Eigenfaces, test_nface, train_nface);
+            CalRecRate([], test_nface, Wopt, M, U);
         end
         
 

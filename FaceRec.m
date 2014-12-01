@@ -1,10 +1,9 @@
-function [ OutputName ] = FaceRec(Wopt, M, U)
+function [ OutputName ] = FaceRec(Wopt, ~, U)
     % cd TestImage;
     
     while (1 == 1)
         choice=menu('Face Recognition',...
-                    'Input Image From File',...
-                    'Capture Now',...
+                    'Load Image File',...
                     'Recognition',...
                     'Exit');
         if (choice ==1)
@@ -20,19 +19,23 @@ function [ OutputName ] = FaceRec(Wopt, M, U)
             % step(Detector,I) returns Bounding Box value that contains [x,y,Height,Width].
 
             image = imcrop(image, BB);
-            image = imresize(image, [60 80]);
+            figure, imshow(image);
+            image = imresize(image, [80 60]);
 
-            figure,
-            imshow(image);
             % saveimage(capcha);
         end
         
-        if (choice == 2)
-            try cd TestImage;close all; end;
-            capturenow;
-        end
+%         if (choice == 2)
+%             try cd TestImage;close all; end;
+%             capturenow;
+%         end
         
-        if (choice == 3)
+        if (choice == 2)
+            if exist('name.mat', 'var');
+                load('name.mat');
+            else
+                name = 1:49;
+            end
             % OutputName=Recognition(m, A, Eigenfaces);
             % n=((OutputName+1)/train_nface); % Calculate which person is the correct answer
             n = Recognition(Wopt, U, image);
@@ -43,7 +46,7 @@ function [ OutputName ] = FaceRec(Wopt, M, U)
             title('Test Image');
             subplot(122),imshow(SelectedImage);
             n = int8(n);
-            OutputName = name(1,n);
+            OutputName = name(n);
             name_str = strcat('Equivalent Image : ', OutputName);
             title(name_str);
             
@@ -51,7 +54,7 @@ function [ OutputName ] = FaceRec(Wopt, M, U)
             disp(int2str(n));
         end
 
-        if (choice == 4) 
+        if (choice == 3) 
             clc; 
             close all;
             return;
