@@ -47,7 +47,7 @@ while (1==1)
     subplot(122),imshow(SelectedImage);
     
     n = int8(n);
-    name_str = strcat('Equivalent Image : name ',name(1,n));
+    name_str = strcat('Equivalent Image : ',name(1,n));
     title(name_str);
        disp('Student No');
        disp(int2str(n));
