@@ -23,13 +23,16 @@ function class = Recognition(Wopt, M, U, image, isUpj)
     proj = Wopt.' * diff;
     
 %% calc dist
-%     mdist = inf;
+	mdist = inf;
+    class = 0;
     K = size(Upj, 2);
-    dist = zeros(1, K);
     for i = 1:K
-        dist(i) = ( norm( proj - Upj(:,i) ) )^2;
+        d = ( norm( proj - Upj(:,i) ) )^2;
+        if d < mdist
+            mdist = d;
+            class = i;
+        end
     end
-    [~, class] = min(dist);
     
 %     class = 0;
 %     mdist = inf;
