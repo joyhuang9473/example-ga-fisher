@@ -1,11 +1,11 @@
 function main
     train_nface = 10;
     test_nface = 90;
-
-    while (1==1)
-        choice=menu('Face Attendance System',...
+    oper = 1;
+    while (oper == 1)
+        choice=menu('Face Recognition System',...
                     'Set Training/Testing',...
-                    'Calculate recognition rate',...
+                    'Calculate Recognition Rate',...
                     'Train System',...
                     'Face Recognition',...
                     'Exit');
@@ -24,30 +24,31 @@ function main
         end
 
        if (choice == 2)
-            if exist('train.mat', 'var');
-                load('train.mat', 'Wopt', 'M', 'U');
+            if exist('train.mat', 'file');
+                load('train.mat', 'Wopt', 'Xt', 'Ct');
+                fprintf(1, 'previous database is loaded.\n');
             end
             % CalRecRate(m, A, Eigenfaces, test_nface, train_nface);
-            CalRecRate([], test_nface, Wopt, M, U);
+            CalRecRate([], test_nface, Wopt, Xt, Ct);
         end
         
 
         if (choice == 3)
-            [Wopt, M, U] = Trainit(train_nface);
-            save('train.mat', 'Wopt', 'M', 'U');
+            [Wopt, Xt, Ct] = Trainit(train_nface);
+            save('train.mat', 'Wopt', 'Xt', 'Ct');
         end
 
         if (choice == 4)
-            if exist('train.mat', 'var');
-                load('train.mat', 'Wopt', 'M', 'U');
+            if exist('train.mat', 'file');
+                load('train.mat', 'Wopt', 'Xt', 'Ct');
+                fprintf(1, 'previous database is loaded.\n');
             end
-            FaceRec(Wopt, M, U);
+            FaceRec(Wopt, Xt, Ct);
         end
 
         if (choice == 5)
-            clc;
+            oper = 0;
             close all;
-            return;
         end
 
     end
