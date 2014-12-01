@@ -17,7 +17,7 @@ function [Wpca, Lpca, Wga, Lga] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
     global W L X U M;
     fprintf(1, 'Wpca, Lpca: processing...');
     if ~exist('Wpca', 'var') || isempty(Wpca)
-        [Wpca, ~, Lpca] = pca(Xv');
+        [Wpca, ~, Lpca] = princomp(Xv');
     end
     fprintbackspace(13);
     fprintf(1, '%d x %d\n', size(Wpca, 1), size(Wpca, 2));
