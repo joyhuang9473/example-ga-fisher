@@ -3,12 +3,12 @@
 % clear all
 % clc
 
-train_nface = 10; % Choose how many pictures of one person to train.
-
+train_nface = 10; % Choose how many pictures of one person for training.
+test_nface = 5;  % Choose how many pictures of one person for test.
 while (1==1)
     choice=menu('Face Attendance System',...
                 'Create Database of Faces',...
-                'Delete DataBase',...
+                'Calculate recognition rate',...
                 'Train System',...
                 'Face Recognition',...
                 'Exit');
@@ -17,7 +17,10 @@ while (1==1)
     end
     
     if (choice == 2)
-        DeleteDatabase;
+        if exist('train.mat');
+            load train;
+        end
+        CalRecRate(m, A, Eigenfaces, test_nface, train_nface);
     end
     
     if (choice ==3)
