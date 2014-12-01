@@ -1,5 +1,5 @@
-function [Wpca, Lpca, Wga, Lga] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l)
-%% function [Wpca, Lpca, Wga, Lga] = GApca(X, U, M, Sw, Sb, Wpca, Lpca, l)
+function [Wpca, Lpca, Wga, Lga] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
+%% function [Wpca, Lpca, Wga, Lga] = GApca(X, U, M, Sw, Sb, Wpca, Lpca, l, coeff)
 % (X, U, M, Sw) or (X, U, M, [], [], Wpca, Lpca, l)
 % X: training image = [x1 x2 x3 ... xn] (kxn, k is the dimension of each image)
 % U: mean image of each class = [u1 u2 u3 ... uj] (kxj, k is dim of image, j is number of classes)
@@ -7,6 +7,7 @@ function [Wpca, Lpca, Wga, Lga] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l)
 % Sw: within-class scatter matrix
 % Sb: between-class scatter matrix (unnecessary)
 % l: rank(Sw)
+% coeff: population & generation of GA, = [popu gene]
 % Wpca: princomp set
 % Lpca: eigenvalues (corresponding to Wpca)
 % Wga: princomp set after GA-PCA = [wi1 wi2 wi3 ... wil] (kxl, k is ...)
@@ -30,8 +31,11 @@ function [Wpca, Lpca, Wga, Lga] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l)
     W = Wpca; L = Lpca; X = Xv; U = Uv; M = Mv;
     clear X_ U_ M_;
     [~, Npc] = size(W);
-    population = 200;
-    generation = 400;
+    if ~exist('coeff', 'var') || isempty(Wpca)
+        coeff = [200 400];
+    end
+    population = coeff(1);
+    generation = coeff(2);
     P = zeros(Npc, population);
     F = zeros(1, population);
     for i = 1:population
@@ -151,12 +155,13 @@ function F = fitness(enc)
         t = (P * X(:,i)) - m;
         sigma = sigma + (t * t');
     end
-    sigma = sigma / N;
-    if det(sigma) ~= 0
-        sigma = inv(sigma);
-    else
-        sigma = pinv(sigma);
-    end
+%     sigma = sigma / N;
+%     if det(sigma) ~= 0
+%         sigma = inv(sigma);
+%     else
+%         sigma = pinv(sigma);
+%     end
+    sigma = (sigma / N) ^ (-1);
     d = inf;
     for i = 1:K
         t = (P * U(:,i)) - m;

@@ -4,7 +4,8 @@ function GApcaDemo
     C
     X
     [M, U, Sw, ~] = ScatterMat(X, C);
-    [W, L, Wga, Lga] = GApca(X, U, M, Sw);
+    % [W, L, Wga, Lga] = GApca(X, U, M, Sw);
+    [W, L, Wga, Lga] = GApca(X, U, M, Sw, [], [], [], [], [200 100]);
     W
     L
     Wga
