@@ -1,12 +1,34 @@
-function [Wga, Lga] = GApca(W_, L_, X_, U_, M_, l)
-%% function [Wga, Lga] = GApca(W, L, X, U, M, l)
-%% init
+function [Wpca, Lpca, Wga, Lga] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l)
+%% function [Wpca, Lpca, Wga, Lga] = GApca(X, U, M, Sw, Sb, Wpca, Lpca, l)
+% (X, U, M, Sw) or (X, U, M, [], [], Wpca, Lpca, l)
+% X: training image = [x1 x2 x3 ... xn] (kxn, k is the dimension of each image)
+% U: mean image of each class = [u1 u2 u3 ... uj] (kxj, k is dim of image, j is number of classes)
+% M: mean image (kx1, k is ...)
+% Sw: within-class scatter matrix
+% Sb: between-class scatter matrix (unnecessary)
+% l: rank(Sw)
+% Wpca: princomp set
+% Lpca: eigenvalues (corresponding to Wpca)
+% Wga: princomp set after GA-PCA = [wi1 wi2 wi3 ... wil] (kxl, k is ...)
+% Lga: eigenvalues (corresponding to Wga)
+
+%% init (pca, rank(Sw))
     global W L X U M;
-    W = W_;
-    L = L_;
-    X = X_;
-    U = U_;
-    M = M_;
+    fprintf(1, 'Wpca, Lpca: processing...');
+    if ~exist('Wpca', 'var') || isempty(Wpca)
+        [Wpca, ~, Lpca] = pca(Xv');
+    end
+    fprintbackspace(13);
+    fprintf(1, '%d x %d\n', size(Wpca, 1), size(Wpca, 2));
+    fprintf(1, 'Rank(Sw): processing...');
+    if ~exist('l', 'var') || isempty(l)
+        l = rank(Sw);
+    end
+    fprintbackspace(13);
+    fprintf(1, '%d\n', l);
+    fprintf(1, 'GA-PCA: population init...');
+    W = Wpca; L = Lpca; X = Xv; U = Uv; M = Mv;
+    clear X_ U_ M_;
     [~, Npc] = size(W);
     population = 200;
     generation = 400;
@@ -17,25 +39,29 @@ function [Wga, Lga] = GApca(W_, L_, X_, U_, M_, l)
         chromo(1:l) = 1;
         P(:,i) = chromo;
     end
+    fprintbackspace(18);
+    fprintf(1, 'fitness init... (%3d/%3d)', 1, population);
     F(1) = fitness(P(:,1));
     win = 1;
     for i = 2:population
+        fprintbackspace(9);
+        fprintf(1, '(%3d/%3d)', i, population);
         P(:,i) = P(randperm(Npc),i);
         F(i) = fitness(P(:,i));
         if F(i) > F(win)
             win = i;
         end
     end
+    fprintbackspace(25);
 %% main GA
-    fprintf(1, 'GA-PCA:   0/%3d (00:00:00/??:??:??)', generation);
+    fprintf(1, '%3d/%3d (00:00:00/??:??:??)', 0, generation);
     timestart = clock();
     for n = 1:generation
         %% print looping detail
         timeoff = clock() - timestart;
         timepass = (timeoff(4)*60 + timeoff(5))*60 + timeoff(6);
         [hour, minute, second] = calctime(timepass);
-        fprintf(1, '\b\b\b\b\b\b\b');
-        fprintf(1, '\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b');
+        fprintbackspace(7+20);
         fprintf(1, '%3d/%3d (%02d:%02d:%02d', n, generation, hour, minute, second);
         [hour, minute, second] = calctime(timepass / n * (generation - n + 1));
         fprintf(1, '/%02d:%02d:%02d)', hour, minute, second);
@@ -56,7 +82,7 @@ function [Wga, Lga] = GApca(W_, L_, X_, U_, M_, l)
             p1 = pool(i + i - 1);
             p2 = pool(i + i);
             range = [randi(Npc) randi(Npc)];
-            range = min(range):max(range);
+            range = [1:min(range) max(range):Npc];
             xchg = [P(:, p1) P(:, p2)];
             s1 = intersect(find(xchg(:,1)==1),find(xchg(:,2)==1));
             s0 = intersect(find(xchg(:,1)==0),find(xchg(:,2)==0));
@@ -87,7 +113,7 @@ function [Wga, Lga] = GApca(W_, L_, X_, U_, M_, l)
     timeoff = clock() - timestart;
     timepass = (timeoff(4)*60 + timeoff(5))*60 + timeoff(6);
     [hour, minute, second] = calctime(timepass);
-    fprintf(1, '\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b');
+	fprintbackspace(20);
     fprintf(1, ' (%02d:%02d:%02d)\n', hour, minute, second);
 %% result
     Wga = W(:, P(:,win) == 1);
@@ -95,6 +121,11 @@ function [Wga, Lga] = GApca(W_, L_, X_, U_, M_, l)
     clear W L X U M;
 end
 
+function fprintbackspace(b)
+    for i = 1:b
+        fprintf(1, '\b');
+    end
+end
 function [hr, min, sec] = calctime(s)
 	sec = mod(floor(s), 60);
 	min = mod(floor(s / 60), 60);
@@ -112,7 +143,7 @@ function F = fitness(enc)
     K = size(U, 2);
     %% generate P = (wi1, wi2, wi3, ..., wil)
     P = W(:,enc == 1);
-    P = P';
+    P = P.';
     %% Fg
     m = P * M;
     sigma = zeros(size(P,1));
@@ -129,7 +160,7 @@ function F = fitness(enc)
     d = inf;
     for i = 1:K
         t = (P * U(:,i)) - m;
-        d = min(d, (t' * sigma * t));
+        d = min(d, (t.' * sigma * t));
     end
     Fg = sqrt(d);
     %% Fa
