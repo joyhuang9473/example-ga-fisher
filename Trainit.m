@@ -1,13 +1,14 @@
-function [m, A, Eigenfaces]=Trainit(train_nface)% A sample script, which shows the usage of functions, included in
-% PCA-based face recognition system (Eigenface method)
+function [Wopt, M, U]=Trainit(train_nface)% A sample script, which shows the usage of functions, included in
+    % PCA-based face recognition system (GA-Fisher method)
 
 
-% clear all
-% clc
-% close all
+    % clear all
+    % clc
+    % close all
 
-% You can customize and fix initial directory paths
-TrainDatabasePath = uigetdir('E:\facerec\TrainDatabase\', 'Select training database path' );
-T = TrainDatabase(TrainDatabasePath, train_nface);
-[m, A, Eigenfaces] = EigenfaceCore(T);
+    % You can customize and fix initial directory paths
+    TrainDatabasePath = uigetdir('TrainDatabase\', 'Select training database path' );
+    [X, C] = TrainDatabase(TrainDatabasePath, train_nface);
+    % [m, A, Eigenfaces] = EigenfaceCore(T);
+    [Wopt, M, U] = GAFisherCore(X, C);
 end
