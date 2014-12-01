@@ -2,6 +2,8 @@
 % close all
 % clear all
 % clc
+% moporgic
+
 
 train_nface = 10; % Choose how many pictures of one person for training.
 test_nface = 5;  % Choose how many pictures of one person for test.
