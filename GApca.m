@@ -17,7 +17,7 @@ function [Wpca, Lpca, Wga, Lga] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
     global W L X U M;
     fprintf(1, 'Wpca, Lpca: processing...');
     if ~exist('Wpca', 'var') || isempty(Wpca)
-        [Wpca, ~, Lpca] = pca(Xv');
+        [Wpca, ~, Lpca] = princomp(Xv');
     end
     fprintbackspace(13);
     fprintf(1, '%d x %d\n', size(Wpca, 1), size(Wpca, 2));
@@ -156,12 +156,11 @@ function F = fitness(enc)
         sigma = sigma + (t * t');
     end
     sigma = sigma / N;
-    if det(sigma) ~= 0
-        sigma = inv(sigma);
-    else
+    try
+        sigma = (sigma / N) ^ (-1);
+    catch
         sigma = pinv(sigma);
     end
-%     sigma = (sigma / N) ^ (-1);
     d = inf;
     for i = 1:K
         t = (P * U(:,i)) - m;

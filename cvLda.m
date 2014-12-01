@@ -1,8 +1,8 @@
-function [Wopt] = cvLda(X, C, M)
+function [W, U] = cvLda(X, C, M)
 % cvLda - Fisher's Linear Discriminant Analysis (FLDA or LDA)
 %
 % Synopsis
-%   [W] = cvLda(X, C, [M])
+%   [W, U] = cvLda(X, C, [M])
 %
 % Description
 %   Fisher's Linear Discriminant Analysis (FLDA or LDA)
@@ -90,12 +90,14 @@ if D > N-c
 else
     %% Find class means and scatter matrix
     me = mean(X, 2);
+    U = zeros(D, c);
     Sw = zeros(D,D);
     Sb = zeros(D,D);
     for i=1:c
         Xi = X(:, C == ClassLabel(i));
         ni = size(Xi, 2);
         mi = mean(Xi, 2);
+        U(:,i) = mi;
         %% Find within-class scatter
         SXi = Xi - repmat(mi, 1, ni);
         Si{i} = SXi * SXi.'; %% [1] (110)
@@ -108,8 +110,5 @@ else
     [S,inx] = sort(diag(S),1,'descend');
     M = min(M, length(inx));
     W = W(:,inx(1:M));
-    
-    [Wga, Lga] = GA_Fisher(W, Sw);
-    Wopt = Whitening(Wga, Lga);
 end
 end

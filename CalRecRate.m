@@ -1,4 +1,4 @@
-function rec_rate = CalRecRate(TrainDatabasePath, test_nface, Wopt, ~, Upj)
+function rec_rate = CalRecRate(TrainDatabasePath, test_nface, Wopt, M, U)
     disp('Calculate recognition rate...');
 %     cd TestImage
 
@@ -8,6 +8,11 @@ function rec_rate = CalRecRate(TrainDatabasePath, test_nface, Wopt, ~, Upj)
     % TrainDatabasePath = uigetdir('E:\facerec\TestImage\', 'Select test database' );
     if ~exist('TrainDatabasePath', 'var') || isempty(TrainDatabasePath)
         TrainDatabasePath = uigetdir('TrainDatabase\', 'Select training database path' );
+    end
+    
+    Upj = zeros(size(Wopt, 2), size(U, 2));
+    for i = 1:size(U, 2)
+        Upj(:,i) = Wopt.' * U(:,i);
     end
     
     for i = 1 : no_folder
@@ -20,7 +25,7 @@ function rec_rate = CalRecRate(TrainDatabasePath, test_nface, Wopt, ~, Upj)
             fprintf(1, 'testing %s... ', str);
             img = imread(str);
             
-            n = Recognition(Wopt, Upj, img);
+            n = Recognition(Wopt, M, Upj, img, 1);
 %             imwrite(img,'InputImage.bmp');
 %             
 %             %-----------------------------------------
@@ -63,7 +68,7 @@ function rec_rate = CalRecRate(TrainDatabasePath, test_nface, Wopt, ~, Upj)
                 fprintf(1, 'OK\n');
                 correct = correct +1;
             else
-                fprintf(1, 'BAD\n');
+                fprintf(1, 'BAD (%d)\n', n);
             end
             total_pass = total_pass + 1;
         end
