@@ -54,12 +54,12 @@ function [T, C] = TrainDatabase(TrainDatabasePath, train_nface)
             % step(Detector,I) returns Bounding Box value that contains [x,y,Height,Width].
 
             % Somtimes the program will catch more than 1 face in a picture, such as irow==2, so we choose the second face only.
-            [irow, icol] = size(BB);
+            [irow, ~] = size(BB);
             if irow==2
                 N = ndims(BB);
                 fprintf(1, '--strange face number: %d\n', N);
                 img = imcrop(img,BB(2,:));
-                save bb;
+                % save bb;
             else
                 img = imcrop(img,BB);
             end
