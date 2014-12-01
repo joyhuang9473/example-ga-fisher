@@ -10,5 +10,5 @@ function [Wopt, M, U] = GAFisherCore(X, C)
     fprintf(1, 'GA-Fisher Core\n');
     [M, U, Sw, Sb] = ScatterMat(X, C);
     [W, ~, Wga, Lga] = GApca(X, U, M, Sw, Sb);
-    Wopt = Whiten(W, Sw, Sb, Wga, Lga);
+    Wopt = Whiten(Sw, Sb, Wga, Lga);
 end
