@@ -11,14 +11,21 @@ function [image, raw] = LoadImage(path, resize_dim, silence)
 
     % Somtimes the program will catch more than 1 face in a picture, such as irow==2, so we choose the second face only.
     [irow, ~] = size(BB);
-    if irow == 2
+    if irow == 1
+        image = imcrop(image,BB);
+    elseif irow > 1
         N = ndims(BB);
         if ~exist('silence', 'var') || isempty(silence)
       		fprintf(1, '--strange face number: %d\n', N);
         end
-        image = imcrop(image,BB(2,:));
+        image = imcrop(image, BB(2,:));
     else
-        image = imcrop(image,BB);
+        if ~exist('silence', 'var') || isempty(silence)
+      		fprintf(1, '--NO face can be detected!!\n');
+        end
+        [height, width] = size(image);
+        BB = [width*0.09 height*0.1 width*0.175 height*0.8];
+        image = imcrop(image, BB);
     end
     
     raw = image;
