@@ -1,49 +1,48 @@
-
 function main
-    % close all
-    % clear all
-    % clc
-    % moporgic
+    train_nface = 10;
+    test_nface = 90;
 
-    prompt = 'How many pictures for taining?(per person) ';
-    train_nface = input(prompt);
-    train_nface = int8(train_nface);
-
-    prompt = 'How many pictures for test?(per person) ';
-    test_nface = input(prompt);
-    test_nface = int8(test_nface);
-    
     while (1==1)
         choice=menu('Face Attendance System',...
-                    'Create Database of Faces',...
-                    'Calculate recognition rate',...
+                    'Set Training/Testing',...
+                    'Calculate Recognition Rate',...
                     'Train System',...
                     'Face Recognition',...
                     'Exit');
 
         if (choice ==1)
-            clear all;
-            CreateDatabase;
+            %clear all;
+            %CreateDatabase;
+            prompt1 = 'How many pictures for training? (per person)';
+            prompt2 = 'How many pictures for testing? (per person)';
+            coef = inputdlg({prompt1, prompt2});
+            if ~isempty(coef)
+                train_nface = int8(str2double(coef{1}));
+                test_nface = int8(str2double(coef{2}));
+            end
+            fprintf(1, 'training: %d  testing: %d\n', train_nface, test_nface);
         end
 
        if (choice == 2)
-            if exist('train.mat');
-                load train;
+            if exist('train.mat', 'file');
+                load('train.mat');
             end
-            CalRecRate(m, A, Eigenfaces, test_nface, train_nface);
+            % CalRecRate(m, A, Eigenfaces, test_nface, train_nface);
+            rec_rate = CalRecRate([], test_nface, Wopt, Xt, Ct);
+            msgbox(sprintf('%.2f%%', rec_rate * 100), 'Recognition Rate');
         end
         
 
         if (choice == 3)
-            [Wopt, M, U] = Trainit(train_nface);
-            save('train.mat', 'Wopt', 'M', 'U');
+            [Wopt, Xt, Ct] = Trainit(train_nface);
+            save('train.mat', 'Wopt', 'Xt', 'Ct');
         end
 
         if (choice == 4)
-            if exist('train.mat', 'var');
-                load('train.mat', 'Wopt', 'M', 'U');
+            if exist('train.mat', 'file');
+                load('train.mat');
             end
-            FaceRec(Wopt, M, U);
+            FaceRec(Wopt, Xt, Ct);
         end
 
         if (choice == 5)

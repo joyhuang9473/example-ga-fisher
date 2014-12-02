@@ -5,10 +5,11 @@ function [Wopt, M, U] = GAFisherCore(X, C)
 %
 % Wopt: optimal projection after GA-Fisher (kxp, k is the dim of each comp)
 % M: mean image of X (kx1)
-% U: mean image of each class = [u1 u2 u3 ... uj] (kxj, k is the dim of image, j is the number of classes)
+% U: mean image of each class = [u1 u2 u3 ... uj] (kxj, j is the number of classes)
     
     fprintf(1, 'GA-Fisher Core\n');
     [M, U, Sw, Sb] = ScatterMat(X, C);
-    [W, ~, Wga, Lga] = GApca(X, U, M, Sw, Sb);
-    Wopt = Whiten(Sw, Sb, Wga, Lga);
+    % [~, ~, Wga, Lga] = GApca(X, U, M, Sw, Sb);
+    [Wga, Lga] = GApca(X, U, M, Sw, Sb, [], [], [], [20 40]);
+    [Wopt] = Whiten(Sw, Sb, Wga, Lga);
 end

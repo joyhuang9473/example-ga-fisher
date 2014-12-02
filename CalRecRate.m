@@ -1,67 +1,39 @@
-function [ ] = CalRecRate(m, A, Eigenfaces, test_nface, train_nface)
+function rec_rate = CalRecRate(TrainDatabasePath, test_nface, W, Xt, Ct)
     disp('Calculate recognition rate...');
-%     cd TestImage
-
-    no_folder = 10;
-    nface = test_nface;    % Choose how many pictures of one person to train.
-    correct = 0;
-    TrainDatabasePath = uigetdir('E:\facerec\TestImage\', 'Select test database' );
+    if ~exist('TrainDatabasePath', 'var') || isempty(TrainDatabasePath)
+        TrainDatabasePath = uigetdir('TrainDatabase\', 'Select training database path' );
+    end
     
+    no_folder = 49;
+    rec_pass = 0; total_test = 0;
+    Yt = cvLdaProj(Xt, W);
+    Xq = zeros(size(Xt, 1), 1);
     for i = 1 : no_folder
-         disp(nface);
-        for j = (100-nface) :  100
+        fprintf(1, 'Class %d:\n', i);
+        for j = 100-test_nface+1 : 100
+            total_test = total_test + 1;
             str = int2str(j);
             str = strcat('\',str,'.bmp');
             str = strcat('\',int2str(i),str);
             str = strcat(TrainDatabasePath,str); 
-            img = imread(str);
-            imwrite(img,'InputImage.bmp');
             
-            %-----------------------------------------
-            ProjectedImages = [];
-            Train_Number = size(Eigenfaces,2);
-            for i = 1 : Train_Number
-                temp = Eigenfaces'*A(:,i); % Projection of centered images into facespace
-                ProjectedImages = [ProjectedImages temp]; 
+            fprintf(1, '-recognizing %s... ', str);
+            [Xq(:,1), ~] = LoadImage(str, [], 1);
+            Yq = cvLdaProj(Xq, W);
+            [class, ~] = cvKnn(Yq, Yt, Ct, 1);
+            if class(1) == i
+                fprintf(1, 'OK\n');
+                rec_pass = rec_pass + 1;
+            else
+                fprintf(1, 'BAD (%d)\n', class(1));
             end
-
-            %%%%%%%%%%%%%%%%%%%%%%%% Extracting the PCA features from test image
-            InputImage = imread('InputImage.bmp');
-            temp = InputImage(:,:,1);
-
-            [irow icol] = size(temp);
-            InImage = reshape(temp',irow*icol,1);
-            Difference = double(InImage)-m; % Centered test image
-            ProjectedTestImage = Eigenfaces'*Difference; % Test image feature vector
-
-            %%%%%%%%%%%%%%%%%%%%%%%% Calculating Euclidean distances 
-            % Euclidean distances between the projected test image and the projection
-            % of all centered training images are calculated. Test image is
-            % supposed to have minimum distance with its corresponding image in the
-            % training database.
-
-            Euc_dist = [];
-            for i = 1 : Train_Number
-                q = ProjectedImages(:,i);
-                temp = ( norm( ProjectedTestImage - q ) )^2;
-                Euc_dist = [Euc_dist temp];
-            end
-
-            [Euc_dist_min , Recognized_index] = min(Euc_dist);
-            OutputName = (Recognized_index);
-
-            %------------------------------------------------------
-            
-            n=((OutputName+1)/train_nface); % Calculate which person is the correct answer
-            if n == i
-                correct = correct +1;
-            end   
-                        
         end
     end 
-    rec_rate = correct/(no_folder*nface)
     
-save RR;
+    rec_rate = rec_pass / total_test;
+    
+    fprintf(1, 'Pass/Total: %d/%d\n', rec_pass, total_test);
+    fprintf(1, 'Recognition Rate: %.2f%%\n', rec_rate * 100);
 
 end
 

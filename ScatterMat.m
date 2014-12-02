@@ -36,7 +36,7 @@ function [me, u, Sw, Sb]=ScatterMat(X, C)
         Sw = Sw + Si; %% [1] (109)
         %% Find between-class scatter
         SMi = mi - me;
-        Sb = Sb + ni * (SMi * SMi.'); %% [1] (114)
+        Sb = Sb + ni * SMi * SMi.'; %% [1] (114)
     end
     timeoff = clock() - timestart;
     timepass = (timeoff(4)*60 + timeoff(5))*60 + timeoff(6);
