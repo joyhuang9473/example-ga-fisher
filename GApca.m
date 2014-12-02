@@ -1,5 +1,5 @@
-function [Wpca, Lpca, Wga, Lga] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
-%% function [Wpca, Lpca, Wga, Lga] = GApca(X, U, M, Sw, Sb, Wpca, Lpca, l, coeff)
+function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
+%% function [Wga, Lga, Wpca, Lpca] = GApca(X, U, M, Sw, Sb, Wpca, Lpca, l, coeff)
 % (X, U, M, Sw) or (X, U, M, [], [], Wpca, Lpca, l)
 % X: training image = [x1 x2 x3 ... xn] (kxn, k is the dimension of each image)
 % U: mean image of each class = [u1 u2 u3 ... uj] (kxj, k is dim of image, j is number of classes)
@@ -8,16 +8,16 @@ function [Wpca, Lpca, Wga, Lga] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
 % Sb: between-class scatter matrix (unnecessary)
 % l: rank(Sw)
 % coeff: population & generation of GA, = [popu gene]
-% Wpca: princomp set
-% Lpca: eigenvalues (corresponding to Wpca)
 % Wga: princomp set after GA-PCA = [wi1 wi2 wi3 ... wil] (kxl, k is ...)
 % Lga: eigenvalues (corresponding to Wga)
+% Wpca: princomp set
+% Lpca: eigenvalues (corresponding to Wpca)
 
 %% init (pca, rank(Sw))
     global W L X U M;
     fprintf(1, 'Wpca, Lpca: processing...');
     if ~exist('Wpca', 'var') || isempty(Wpca)
-        [Wpca, ~, Lpca] = princomp(Xv');
+        [Wpca, ~, Lpca] = cvPca(Xv);
     end
     fprintbackspace(13);
     fprintf(1, '%d x %d\n', size(Wpca, 1), size(Wpca, 2));
@@ -25,6 +25,7 @@ function [Wpca, Lpca, Wga, Lga] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
     if ~exist('l', 'var') || isempty(l)
         l = rank(Sw);
     end
+    l = min(l, size(Wpca, 2));
     fprintbackspace(13);
     fprintf(1, '%d\n', l);
     fprintf(1, 'GA-PCA: population init...');
@@ -73,46 +74,55 @@ function [Wpca, Lpca, Wga, Lga] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
             continue;
         end
         modified = zeros(1, population);
+        fprintf(1, '\n>> ');
         %% selection
+        fprintf(1, 'selection...');
         c = ceil(crossover(n, generation) * population / 2) * 2;
-        c_best = floor(c * 0.5);
+        c_best = floor(c * 0.75);
         [~, I] = sort(F, 'descend');
+        % shuffle I from (c_best+1) to (population)
         I(c_best+1:population) = I(randperm(population-c_best)+c_best);
         pool = [I(1:c_best) I(c_best+1:c)]; % pool holds the index of P(:,i)
         pool = pool(randperm(c));
         modified(pool) = 1;
         %% crossover
+        fprintf(1, 'crossover...');
         for i = 1:(c/2)
             p1 = pool(i + i - 1);
             p2 = pool(i + i);
-            range = [randi(Npc) randi(Npc)];
-            range = [1:min(range) max(range):Npc];
-            xchg = [P(:, p1) P(:, p2)];
-            s1 = intersect(find(xchg(:,1)==1),find(xchg(:,2)==1));
-            s0 = intersect(find(xchg(:,1)==0),find(xchg(:,2)==0));
-            sz = 1:Npc;
-            sz(union(union(s1, s0),range)) = [];
-            xchg(sz,:) = xchg(sz(randperm(length(sz))),:);
-            P(:, p1) = xchg(:,1);
-            P(:, p2) = xchg(:,2);
+            r = [randi(Npc) randi(Npc)];
+            r = [min(r) max(r)];
+            sz = find(P(r, p1) ~= P(r, p2)) + (r(1) - 1);
+            szr = sz(randperm(length(sz)));
+            P(sz, p1) = P(szr, p1);
+            P(sz, p2) = P(szr, p1);
         end
         %% mutation
+        fprintf(1, 'mutation...');
         m = ceil(mutation(n, generation) * population * Npc);
         for i = 1:m
             select = randi(population);
+            mp1 = randi(Npc);
+            mp2 = randi(Npc); mp2tget = 0;
+            if P(mp1,select) == 0
+                mp2tget = 1;
+            end
+            while P(mp2,select) ~= mp2tget
+                mp2 = randi(Npc);
+            end
+            P(mp1, select) = P(mp2, select);
+            P(mp2, select) = mp2tget;
             modified(select) = 1;
-            m0 = find(P(:,select) == 0);
-            m1 = find(P(:,select) == 1);
-            P(m0(randi(Npc - l)),select) = 1;
-            P(m1(randi(l)),select) = 0;
         end
         %% calculate fitness
+        fprintf(1, 'fitness...');
         for i = find(modified)
             F(i) = fitness(P(:,i));
             if F(i) > F(win)
                 win = i;
             end
         end
+        fprintbackspace(12+12+11+10+4);
     end
     timeoff = clock() - timestart;
     timepass = (timeoff(4)*60 + timeoff(5))*60 + timeoff(6);
