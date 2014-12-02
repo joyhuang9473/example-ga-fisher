@@ -46,7 +46,6 @@ function main
         end
 
         if (choice == 5)
-            clc;
             close all;
             return;
         end

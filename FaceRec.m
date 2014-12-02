@@ -32,7 +32,7 @@ function [ OutputName ] = FaceRec(W, Xt, Ct)
             
             name_idx = regexp(InputName, '.[0-9]+.[0-9]+.(bmp|BMP)');
             if ~isempty(name_idx)
-                InputName = InputName(name_idx:end);
+                InputName = strrep(InputName(name_idx:end),'\', '/');
             end
             subplot(121), imshow(test)
             title(InputName);
@@ -44,7 +44,6 @@ function [ OutputName ] = FaceRec(W, Xt, Ct)
         end
 
         if (choice == 2) 
-            clc; 
             close all;
             return;
         end

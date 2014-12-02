@@ -4,5 +4,5 @@ function [Wopt, X, C] = Trainit(train_nface)
 
     [X, C] = TrainDatabase([], train_nface);
     % [m, A, Eigenfaces] = EigenfaceCore(T);
-    [Wopt, ~, ~] = GAFisherCore(X, C);
+    [Wopt, ~, ~] = GAFisherCore(X, C, [20 40]);
 end

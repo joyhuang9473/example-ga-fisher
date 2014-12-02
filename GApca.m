@@ -87,20 +87,25 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
         modified(pool) = 1;
         %% crossover
         fprintf(1, 'crossover...');
+        chomoDim = size(P, 1);
         for i = 1:(c/2)
+        try
             p1 = pool(i + i - 1);
             p2 = pool(i + i);
-            r = [randi(Npc) randi(Npc)];
+            r = [randi(chomoDim) randi(chomoDim)];
             r = [min(r) max(r)];
             sz = find(P(r, p1) ~= P(r, p2)) + (r(1) - 1);
             szr = sz(randperm(length(sz)));
             P(sz, p1) = P(szr, p1);
             P(sz, p2) = P(szr, p1);
+        catch
+        end
         end
         %% mutation
         fprintf(1, 'mutation...');
         m = ceil(mutation(n, generation) * population * Npc);
         for i = 1:m
+        try
             select = randi(population);
             mp1 = randi(Npc);
             mp2 = randi(Npc); mp2tget = 0;
@@ -113,6 +118,8 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
             P(mp1, select) = P(mp2, select);
             P(mp2, select) = mp2tget;
             modified(select) = 1;
+        catch
+        end
         end
         %% calculate fitness
         fprintf(1, 'fitness...');
