@@ -6,8 +6,11 @@ function [Wopt, X, C] = GAFisherCore(X, C, GAcoef)
 % GAcoef: population & generation of GA = [popu gene]
     
     fprintf(1, 'GA-Fisher Core\n');
+    fprintf(1, 'Info: %d x %d, [%d %d]\n', size(X,1), size(X,2), GAcoef(1), GAcoef(2));
+    timestart = clock();
     [M, U, Sw, Sb] = ScatterMat(X, C);
     % [~, ~, Wga, Lga] = GApca(X, U, M, Sw, Sb);
     [Wga, Lga] = GApca(X, U, M, Sw, Sb, [], [], [], GAcoef);
     [Wopt] = Whiten(Sw, Sb, Wga, Lga);
+    fprintf(1, 'Done! (%s)\n', calctime(clock(), timestart));
 end

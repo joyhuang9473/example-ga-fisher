@@ -8,11 +8,9 @@ function [Wopt] = Whiten(Sw, Sb, Wga, Lga, Wconj, S)
     if ~exist('Wconj', 'var') || isempty(Wconj)
         prompt = 'eig(Sb, Sw)... please wait';
         fprintf(1, prompt);
-        [Wconj, S] = eig(Sb,Sw);
+        [Wconj, S] = eig(Sb, Sw);
         save(sprintf('eig-%dx%d.mat', size(Wga, 1), size(Wga, 2)), 'Wconj', 'S');
-        for i=1:length(prompt)
-            fprintf(1, '\b');
-        end
+        fprintbackspace(length(prompt));
     end
     [S, inx] = sort(diag(S),1,'descend');
     [M, N] = size(Wga);

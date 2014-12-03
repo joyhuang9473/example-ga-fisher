@@ -34,10 +34,10 @@ function [ OutputName ] = FaceRec(W, Xt, Ct)
             if ~isempty(name_idx)
                 InputName = strrep(InputName(name_idx:end),'\', '/');
             end
-            subplot(121), imshow(test)
+            subplot(121), imshow(test);
             title(InputName);
             
-            subplot(122),imshow(recog_result);
+            subplot(122), imshow(recog_result);
             title(OutputName);
             
             fprintf(1, 'Student No %d: %s\n', n, OutputName);
