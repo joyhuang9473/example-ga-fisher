@@ -21,8 +21,8 @@ function rec_rate = CalRecRate(DatabasePath, TestImages, W, Xt, Ct)
     Yt = cvLdaProj(Xt, W);
     Xq = zeros(size(Xt, 1), 1);
     for i = 1:size(TestImages,1)
-        fprintf(1, 'Class %d:\n', i);
         testimg = find(TestImages(i,:));
+        fprintf(1, 'Class %d: %d images\n', i, length(testimg));
         for s = 1:length(testimg)
             total_test = total_test + 1;
             img = sprintf('%s\\%d\\%d.bmp',DatabasePath,i,TestImages(i,s));

@@ -14,7 +14,7 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
 % Lpca: eigenvalues (corresponding to Wpca)
 
 %% init (pca, rank(Sw))
-    fprintf(1, 'Wpca, Lpca: processing...');
+    fprintf(1, 'Wpca: processing...');
     if ~exist('Wpca', 'var') || isempty(Wpca)
         [Wpca, ~, Lpca] = cvPca(Xv);
     end
@@ -24,10 +24,10 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
     if ~exist('l', 'var') || isempty(l)
         l = rank(Sw);
     end
-    l = min(l, size(Wpca, 2));
+    l = max(min(l, size(Wpca,2)), ceil(size(Wpca,2)*0.2));
     fprintbackspace(13);
     fprintf(1, '%d\n', l);
-    fprintf(1, 'GA-PCA: population init...');
+    fprintf(1, 'GA-PCA: init...');
     global W L X U M;
     W = Wpca; L = Lpca; X = Xv; U = Uv; M = Mv;
     clear Xv Uv Mv;
@@ -39,25 +39,19 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
     generation = coeff(2);
     P = zeros(Npc, population);
     F = zeros(1, population);
-    for i = 1:population
-        chromo = zeros(Npc, 1);
-        chromo(1:l) = 1;
-        P(:,i) = chromo;
-    end
-    fprintbackspace(18);
+    P(1:l,:) = 1;
+    fprintbackspace(7);
     fprintf(1, 'fitness init... (%3d/%3d)', 1, population);
     F(1) = fitness(P(:,1));
-%     win = P(:,1);
-%     fit = F(:,1);
+    win = P(:,1); fit = F(1);
     for i = 2:population
         fprintbackspace(9);
         fprintf(1, '(%3d/%3d)', i, population);
         P(:,i) = P(randperm(Npc),i);
         F(:,i) = fitness(P(:,i));
-%         if F(:,i) > fit
-%             win = P(:,i);
-%             fit = F(:,i);
-%         end
+        if F(i) > fit
+            win = P(:,i); fit = F(i);
+        end
     end
     fprintbackspace(25);
 %% main GA
@@ -119,6 +113,9 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
         for i = 1:population
             fprintf(1, ' (%3d/%3d)', i, population);
             F(:,i) = fitness(P(:,i));
+            if F(i) > fit
+                win = P(:,i); fit = F(i);
+            end
             fprintbackspace(10);
         end
         fprintbackspace(12+12+11+10+4);
@@ -126,9 +123,9 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
 	fprintbackspace(20);
     fprintf(1, ' (%s)\n', calctime(clock(), timestart));
 %% result
-    [~, win] = max(F);
-    Wga = W(:, P(:,win) == 1);
-    Lga = L(P(:,win) == 1);
+    fprintf(1, 'Fitness: %.2f\n', fit);
+    Wga = W(:, win == 1);
+    Lga = L(win == 1);
     clear W L X U M;
     fprintf(1, 'Wga: %d x %d\n', size(Wga,1), size(Wga,2));
 end
