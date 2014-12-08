@@ -1,6 +1,6 @@
 function rec_rate = CalRecRate(DatabasePath, TestImages, W, Xt, Ct)
     disp('Calculate recognition rate...');
-    if ~exist('TrainDatabasePath', 'var') || isempty(DatabasePath)
+    if ~exist('DatabasePath', 'var') || isempty(DatabasePath)
         DatabasePath = uigetdir('TrainDatabase\', 'Select training database path' );
     end
     no_folder = 49;

@@ -13,8 +13,8 @@ function [Wopt] = Whiten(Sw, Sb, Wga, Lga, Wconj, S)
         fprintbackspace(4+6+5);
         fprintf(1, ': %s\n', calctime(clock(), eigTstart));
     end
-    [S, inx] = sort(diag(S),1,'descend');
-    [M, N] = size(Wga);
+    [~, inx] = sort(diag(S),1,'descend');
+    [M, ~] = size(Wga);
     M = min(M, length(inx));
     Wconj = Wconj(:,inx(1:M));
     % Wlda = Wga_whiten^(-1) * Wconj;

@@ -120,7 +120,8 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
         end
         fprintbackspace(12+12+11+10+4);
     end
-	fprintbackspace(20);
+	fprintbackspace(20+7);
+    fprintf(1, '[%d %d]', population, generation);
     fprintf(1, ' (%s)\n', calctime(clock(), timestart));
 %% result
     fprintf(1, 'Fitness: %.2f\n', fit);
