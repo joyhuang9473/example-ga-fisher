@@ -1,4 +1,4 @@
-function [X, C] = TrainDatabase(TrainDatabasePath, TrainImages)
+function [X, C] = TrainDatabase(TrainDatabasePath, TrainImages, silence)
 % Align a set of face images (the training set T1, T2, ... , TM )
 %
 % Description: This function reshapes all 2D images of the training database
@@ -42,17 +42,26 @@ function [X, C] = TrainDatabase(TrainDatabasePath, TrainImages)
         TrainDatabasePath = uigetdir('TrainDatabase\', 'Select training database path' );
     end
     
-    disp('Loading Faces:');
+    if ~exist('silence', 'var') || isempty(silence)
+        disp('Loading Faces:');
+        silence = [];
+    end
+    
     img_idx = 1;
     for i = 1:size(TrainImages, 1)
         samples = find(TrainImages(i,:));
-        fprintf(1, 'Class %d: %d samples\n', i, length(samples));
+        if ~exist('silence', 'var') || isempty(silence)
+            fprintf(1, 'Class %d: %d samples\n', i, length(samples));
+        end
         for s = 1:length(samples)
             img = sprintf('%s\\%d\\%d.bmp',TrainDatabasePath,i,TrainImages(i,s));
-            X(:,img_idx) = LoadImage(img);
+            X(:,img_idx) = LoadImage(img, [], silence);
             C(img_idx) = i;
             img_idx = img_idx + 1;
         end
     end
-    fprintf(1, 'Database loaded: %d x %d\n', size(X, 1), size(X, 2));
+    
+    if ~exist('silence', 'var') || isempty(silence)
+        fprintf(1, 'Database loaded: %d x %d\n', size(X, 1), size(X, 2));
+    end
 end
