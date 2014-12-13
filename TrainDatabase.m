@@ -1,4 +1,4 @@
-function [T, C] = TrainDatabase(TrainDatabasePath, train_nface)
+function [X, C] = TrainDatabase(TrainDatabasePath, TrainImages, silence)
 % Align a set of face images (the training set T1, T2, ... , TM )
 %
 % Description: This function reshapes all 2D images of the training database
@@ -8,7 +8,7 @@ function [T, C] = TrainDatabase(TrainDatabasePath, train_nface)
 % 
 % Argument:     TrainDatabasePath      - Path of the training database
 %
-% Returns:      T                      - A 2D matrix, containing all 1D image vectors.
+% Returns:      X                      - A 2D matrix, containing all 1D image vectors.
 %                                        Suppose all P images in the training database 
 %                                        have the same size of MxN. So the length of 1D 
 %                                        column vectors is MN and 'T' will be a MNxP 2D matrix.
@@ -19,39 +19,49 @@ function [T, C] = TrainDatabase(TrainDatabasePath, train_nface)
 
 %  no_folder=size(dir([TrainDatabasePath,'\*']),1)-size(dir([TrainDatabasePath,'\*m']),1)-2;
     no_folder = 49;
-    nface = train_nface;    % Choose how many pictures of one person to train.
     resize_dim = [80 60];
+    [td1, td2] = size(TrainImages);
+    if td1 == 1 || td2 == 1;
+        if td1 == 1 && td2 == 1
+            TrainImages = 1:TrainImages;
+        elseif td2 == 1
+            TrainImages = TrainImages';
+        end
+        train = zeros(no_folder, length(TrainImages));
+        for i = 1:no_folder
+            train(i,:) = TrainImages;
+        end
+        TrainImages = train;
+    end
 %%%%%%%%%%%%%%%%%%%%%%%% Construction of 2D matrix from 1D image vectors
     image_dim = resize_dim(1) * resize_dim(2);
-    image_num_total = no_folder * nface;
-    T = zeros(image_dim, image_num_total);
-    C = zeros(1, image_num_total);
+    X = zeros(image_dim, length(find(TrainImages)));
+    C = zeros(1, size(X,2));
 
     if ~exist('TrainDatabasePath', 'var') || isempty(TrainDatabasePath)
         TrainDatabasePath = uigetdir('TrainDatabase\', 'Select training database path' );
     end
     
-    disp('Loading Faces:');
+    if ~exist('silence', 'var') || isempty(silence)
+        disp('Loading Faces:');
+        silence = [];
+    end
+    
     img_idx = 1;
-    for i = 1 : no_folder
-        % stk = int2str(i);
-        % disp(stk);
-        fprintf(1, 'Class %d: %d samples\n', i, nface);
-        % stk = strcat('\',stk,'\*bmp');
-        % folder_content = dir ([TrainDatabasePath,stk]);
-        % nface = size (folder_content,1);
-
-        % disp(nface);
-        for j = 1 :  nface
-            str = int2str(j);
-            str = strcat('\',str,'.bmp');
-            str = strcat('\',int2str(i),str);
-            str = strcat(TrainDatabasePath, str); 
-            T(:,img_idx) = LoadImage(str);
+    for i = 1:size(TrainImages, 1)
+        samples = find(TrainImages(i,:));
+        if ~exist('silence', 'var') || isempty(silence)
+            fprintf(1, 'Class %d: %d samples\n', i, length(samples));
+        end
+        for s = 1:length(samples)
+            img = sprintf('%s\\%d\\%d.bmp',TrainDatabasePath,i,TrainImages(i,s));
+            X(:,img_idx) = LoadImage(img, [], silence);
             C(img_idx) = i;
             img_idx = img_idx + 1;
         end
-
     end
-    fprintf(1, 'Database loaded: %d x %d\n', size(T, 1), size(T, 2));
+    
+    if ~exist('silence', 'var') || isempty(silence)
+        fprintf(1, 'Database loaded: %d x %d\n', size(X, 1), size(X, 2));
+    end
 end

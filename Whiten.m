@@ -6,16 +6,15 @@ function [Wopt] = Whiten(Sw, Sb, Wga, Lga, Wconj, S)
 
     %% Computing Wlda
     if ~exist('Wconj', 'var') || isempty(Wconj)
-        prompt = 'eig(Sb, Sw)... please wait';
-        fprintf(1, prompt);
-        [Wconj, S] = eig(Sb,Sw);
+        eigTstart = clock();
+        fprintf(1, 'eig(Sb,Sw)... please wait');
+        [Wconj, S] = eig(Sb, Sw);
         save(sprintf('eig-%dx%d.mat', size(Wga, 1), size(Wga, 2)), 'Wconj', 'S');
-        for i=1:length(prompt)
-            fprintf(1, '\b');
-        end
+        fprintbackspace(4+6+5);
+        fprintf(1, ': %s\n', calctime(clock(), eigTstart));
     end
-    [S, inx] = sort(diag(S),1,'descend');
-    [M, N] = size(Wga);
+    [~, inx] = sort(diag(S),1,'descend');
+    [M, ~] = size(Wga);
     M = min(M, length(inx));
     Wconj = Wconj(:,inx(1:M));
     % Wlda = Wga_whiten^(-1) * Wconj;
