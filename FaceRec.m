@@ -32,19 +32,18 @@ function [ OutputName ] = FaceRec(W, Xt, Ct)
             
             name_idx = regexp(InputName, '.[0-9]+.[0-9]+.(bmp|BMP)');
             if ~isempty(name_idx)
-                InputName = InputName(name_idx:end);
+                InputName = strrep(InputName(name_idx:end),'\', '/');
             end
-            subplot(121), imshow(test)
+            subplot(121), imshow(test);
             title(InputName);
             
-            subplot(122),imshow(recog_result);
+            subplot(122), imshow(recog_result);
             title(OutputName);
             
             fprintf(1, 'Student No %d: %s\n', n, OutputName);
         end
 
         if (choice == 2) 
-            clc; 
             close all;
             return;
         end
