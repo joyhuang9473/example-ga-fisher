@@ -51,7 +51,6 @@ function [ OutputName ] = FaceRec(W, Xt, Ct)
             
             img = snapshot(cam);% Capture the image
             image(img);
-                        
         end
         
         if (choice == 3) 
