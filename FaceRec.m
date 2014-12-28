@@ -55,12 +55,17 @@ function [ OutputName ] = FaceRec(W, Xt, Ct)
         end
 
         if (choice == 2) % Open webcam
-            camList = webcamlist; %The webcamlist function provides a cell array of webcams on the current system that MATLAB can access.
-            cam = webcam(1);  % Connect to the first webcam of your computer.
-            preview(cam); % Open a Video Preview window.
-            
-            img = snapshot(cam);% Capture the image
-            image(img);
+             % Create a cascade detector object.
+             faceDetector = vision.CascadeObjectDetector();
+             
+            vidobj = imaq.VideoDevice('winvideo', 1 ,'MJPG_640x480', ...
+     'ReturnedDataType','uint8');
+            vidobj.DeviceProperties.Brightness = 44;
+            preview(vidobj);
+             videoFrame = step(vidobj);
+             bbox       = step(faceDetector, videoFrame);
+             videoFrame = insertShape(videoFrame, 'Rectangle', bbox);
+             imshow(videoFrame); title('Detected face');
                         
         end
         
