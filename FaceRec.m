@@ -1,12 +1,22 @@
 function [ OutputName ] = FaceRec(W, Xt, Ct)
-    if exist('name.mat', 'file');
-        load('name.mat');
-        fprintf(1, 'name.mat is loaded');
+    
+%     if exist('name.mat', 'file');
+%         load('name.mat');
+%         fprintf(1, 'name.mat is loaded');
+        
+    if exist('e_name_vl.mat', 'file');
+        load('e_name_vl.mat');
+        fprintf(1, 'e_name_vl.mat is loaded');     
+            
     else
         name = cell(1,49);
         for i = 1:49
             name{i} = sprintf('class %02d', i);
         end
+         e_name_vl = cell(1,49);
+         for i = 1:49
+             e_name_vl{i} = sprintf('class %02d', i);
+         end
     end
     
     while (1 == 1)
@@ -29,7 +39,7 @@ function [ OutputName ] = FaceRec(W, Xt, Ct)
             %% display result
             imgpath = strcat('TrainDatabase\',int2str(n),'\1.bmp');
             [~, recog_result] = LoadImage(imgpath);
-            OutputName = name{n};
+            OutputName = e_name_vl{n};
             
             name_idx = regexp(InputName, '.[0-9]+.[0-9]+.(bmp|BMP)');
             if ~isempty(name_idx)
