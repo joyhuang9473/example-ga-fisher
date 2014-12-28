@@ -1,67 +1,48 @@
-function [ ] = CalRecRate(m, A, Eigenfaces, test_nface, train_nface)
+function rec_rate = CalRecRate(DatabasePath, TestImages, W, Xt, Ct)
     disp('Calculate recognition rate...');
-%     cd TestImage
-
-    no_folder = 10;
-    nface = test_nface;    % Choose how many pictures of one person to train.
-    correct = 0;
-    TrainDatabasePath = uigetdir('E:\facerec\TestImage\', 'Select test database' );
-    
-    for i = 1 : no_folder
-         disp(nface);
-        for j = (100-nface) :  100
-            str = int2str(j);
-            str = strcat('\',str,'.bmp');
-            str = strcat('\',int2str(i),str);
-            str = strcat(TrainDatabasePath,str); 
-            img = imread(str);
-            imwrite(img,'InputImage.bmp');
-            
-            %-----------------------------------------
-            ProjectedImages = [];
-            Train_Number = size(Eigenfaces,2);
-            for i = 1 : Train_Number
-                temp = Eigenfaces'*A(:,i); % Projection of centered images into facespace
-                ProjectedImages = [ProjectedImages temp]; 
-            end
-
-            %%%%%%%%%%%%%%%%%%%%%%%% Extracting the PCA features from test image
-            InputImage = imread('InputImage.bmp');
-            temp = InputImage(:,:,1);
-
-            [irow icol] = size(temp);
-            InImage = reshape(temp',irow*icol,1);
-            Difference = double(InImage)-m; % Centered test image
-            ProjectedTestImage = Eigenfaces'*Difference; % Test image feature vector
-
-            %%%%%%%%%%%%%%%%%%%%%%%% Calculating Euclidean distances 
-            % Euclidean distances between the projected test image and the projection
-            % of all centered training images are calculated. Test image is
-            % supposed to have minimum distance with its corresponding image in the
-            % training database.
-
-            Euc_dist = [];
-            for i = 1 : Train_Number
-                q = ProjectedImages(:,i);
-                temp = ( norm( ProjectedTestImage - q ) )^2;
-                Euc_dist = [Euc_dist temp];
-            end
-
-            [Euc_dist_min , Recognized_index] = min(Euc_dist);
-            OutputName = (Recognized_index);
-
-            %------------------------------------------------------
-            
-            n=((OutputName+1)/train_nface); % Calculate which person is the correct answer
-            if n == i
-                correct = correct +1;
-            end   
-                        
+    if ~exist('DatabasePath', 'var') || isempty(DatabasePath)
+        DatabasePath = uigetdir('TrainDatabase\', 'Select training database path' );
+    end
+    no_folder = 49;
+    [td1, td2] = size(TestImages);
+    if td1 == 1 || td2 == 1;
+        if td1 == 1 && td2 == 1
+            TestImages = (100-TestImages+1):TestImages;
+        elseif td2 == 1
+            TestImages = TestImages';
         end
-    end 
-    rec_rate = correct/(no_folder*nface)
+        train = zeros(no_folder, length(TestImages));
+        for i = 1:no_folder
+            train(i,:) = TestImages;
+        end
+        TestImages = train;
+    end
+    rec_pass = 0; total_test = 0;
+    Yt = cvLdaProj(Xt, W);
+    Xq = zeros(size(Xt, 1), 1);
+    for i = 1:size(TestImages,1)
+        testimg = find(TestImages(i,:));
+        fprintf(1, 'Class %d: %d images\n', i, length(testimg));
+        for s = 1:length(testimg)
+            total_test = total_test + 1;
+            img = sprintf('%s\\%d\\%d.bmp',DatabasePath,i,TestImages(i,s));
+            fprintf(1, '-recognizing %s... ', img);
+            [Xq(:,1), ~] = LoadImage(img, [], 1);
+            Yq = cvLdaProj(Xq, W);
+            [class, ~] = cvKnn(Yq, Yt, Ct, 1);
+            if class(1) == i
+                fprintf(1, 'OK\n');
+                rec_pass = rec_pass + 1;
+            else
+                fprintf(1, 'BAD (%d)\n', class(1));
+            end
+        end
+    end
     
-save RR;
+    rec_rate = rec_pass / total_test;
+    
+    fprintf(1, 'Pass/Total: %d/%d\n', rec_pass, total_test);
+    fprintf(1, 'Recognition Rate: %.2f%%\n', rec_rate * 100);
 
 end
 

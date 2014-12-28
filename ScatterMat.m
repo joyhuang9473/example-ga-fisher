@@ -16,16 +16,13 @@ function [me, u, Sw, Sb]=ScatterMat(X, C)
     u = zeros(D, c);
     Sw = zeros(D,D);
     Sb = zeros(D,D);
-    fprintf(1, 'M,Sw,Sb: %2d/%2d (00:00:00/??:??:??)',0, c);
+    fprintf(1, 'Sw,Sb: %2d/%2d (00:00:00/??:??:??)',0, c);
     timestart = clock();
     for i=1:c
-        timeoff = clock() - timestart;
-        timepass = (timeoff(4)*60 + timeoff(5))*60 + timeoff(6);
-        [hour, minute, second] = calctime(timepass);
+        [current, timepass] = calctime(clock(), timestart);
+        [estimate] = calctime(timepass / i * (c - i + 1));
         fprintbackspace(20+5);
-        fprintf(1, '%2d/%2d (%02d:%02d:%02d', i, c, hour, minute, second);
-        [hour, minute, second] = calctime(timepass / i * (c - i + 1));
-        fprintf(1, '/%02d:%02d:%02d)', hour, minute, second);
+        fprintf(1, '%2d/%2d (%s/%s)', i, c, current, estimate);
         Xi = X(:, C == ClassLabel(i));
         ni = size(Xi, 2);
         mi = mean(Xi, 2);
@@ -36,21 +33,8 @@ function [me, u, Sw, Sb]=ScatterMat(X, C)
         Sw = Sw + Si; %% [1] (109)
         %% Find between-class scatter
         SMi = mi - me;
-        Sb = Sb + ni * (SMi * SMi.'); %% [1] (114)
+        Sb = Sb + ni * SMi * SMi.'; %% [1] (114)
     end
-    timeoff = clock() - timestart;
-    timepass = (timeoff(4)*60 + timeoff(5))*60 + timeoff(6);
-    [hour, minute, second] = calctime(timepass);
-    fprintbackspace(20);
-    fprintf(1, ' (%02d:%02d:%02d)\n', hour, minute, second);
-end
-function fprintbackspace(b)
-    for i = 1:b
-        fprintf(1, '\b');
-    end
-end
-function [hr, min, sec] = calctime(s)
-	sec = mod(floor(s), 60);
-	min = mod(floor(s / 60), 60);
-	hr = mod(floor(s / 3600), 60);
+    fprintbackspace(20+5);
+    fprintf(1, '%d x %d (%s)\n', D, D, calctime(clock(), timestart));
 end

@@ -1,53 +1,61 @@
-
 function main
-    % close all
-    % clear all
-    % clc
-    % moporgic
+    try
+        load('coeff.mat');
+    catch
+        Train = [1 21 41 61 81];
+        Test = 1:100; Test(Train) = [];
+        gaCoef = [200 400];
+    end
 
-    prompt = 'How many pictures for taining?(per person) ';
-    train_nface = input(prompt);
-    train_nface = int8(train_nface);
-
-    prompt = 'How many pictures for test?(per person) ';
-    test_nface = input(prompt);
-    test_nface = int8(test_nface);
-    
     while (1==1)
-        choice=menu('Face Attendance System',...
-                    'Create Database of Faces',...
-                    'Calculate recognition rate',...
+        choice=menu('Face Recognition System',...
+                    'Set System Coefficient',...
+                    'Calculate Recognition Rate',...
                     'Train System',...
                     'Face Recognition',...
                     'Exit');
-
-        if (choice ==1)
-            clear all;
-            CreateDatabase;
+        
+        if (choice == 1)
+            %% Set Training/Testing
+            prompt1 = 'Pictures for training? (per person)';
+            prompt2 = 'Pictures for testing? (per person)';
+            prompt3 = 'Population & Generation?';
+            coef = inputdlg({prompt1, prompt2, prompt3});
+            [Train, Test, gaCoef] = parsecoeff(coef);
+            save('coeff.mat', 'Train', 'Test', 'gaCoef');
         end
 
-       if (choice == 2)
-            if exist('train.mat');
-                load train;
+        if (choice == 2)
+            %% Calculate Recognition Rate
+            try
+                load('train.mat', 'Wopt', 'Xt', 'Ct');
+                rec_rate = CalRecRate([], Test, Wopt, Xt, Ct);
+                msgbox(sprintf('%.2f%%', rec_rate * 100), 'Recognition Rate');
+            catch
+                msgbox('Please train the system first', 'Error');
             end
-            CalRecRate(m, A, Eigenfaces, test_nface, train_nface);
         end
         
 
         if (choice == 3)
-            [Wopt, M, U] = Trainit(train_nface);
-            save('train.mat', 'Wopt', 'M', 'U');
+            %% Train System
+            [Xt, Ct] = TrainDatabase([], Train);
+            [Wopt, ~, ~] = GAFisherCore(Xt, Ct, gaCoef);
+            save('train.mat', 'Wopt', 'Xt', 'Ct');
         end
 
         if (choice == 4)
-            if exist('train.mat', 'var');
-                load('train.mat', 'Wopt', 'M', 'U');
+            %% Face Recognition
+            try
+                load('train.mat', 'Wopt', 'Xt', 'Ct');
+                FaceRec(Wopt, Xt, Ct);
+            catch
+                msgbox('Please train the system first', 'Error');
             end
-            FaceRec(Wopt, M, U);
         end
 
         if (choice == 5)
-            clc;
+            %% Exit
             close all;
             return;
         end
