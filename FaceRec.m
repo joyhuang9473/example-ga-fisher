@@ -12,6 +12,7 @@ function [ OutputName ] = FaceRec(W, Xt, Ct)
     while (1 == 1)
         choice=menu('Face Recognition',...
                     '      Load Image      ',...
+                    '      Capture Now     ',...
                     'Exit');
                 
         if (choice ==1)
@@ -43,7 +44,18 @@ function [ OutputName ] = FaceRec(W, Xt, Ct)
             fprintf(1, 'Student No %d: %s\n', n, OutputName);
         end
 
-        if (choice == 2) 
+        if (choice == 2) % Open webcam
+            camList = webcamlist; %The webcamlist function provides a cell array of webcams on the current system that MATLAB can access.
+            cam = webcam(1);  % Connect to the first webcam of your computer.
+            preview(cam); % Open a Video Preview window.
+            
+            img = snapshot(cam);% Capture the image
+            image(img);
+                        
+        end
+        
+        if (choice == 3) 
+            clear cam;  % Once the camera connection is no longer needed, clear the associated variable.
             close all;
             return;
         end
