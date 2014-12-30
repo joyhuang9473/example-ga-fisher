@@ -27,14 +27,20 @@ function main
 
         if (choice == 2)
             %% Calculate Recognition Rate
-            try
+%             try
                 load('train.mat', 'Wopt', 'Xt', 'Ct');
                 rec_rate = CalRecRate([], Test, Wopt, Xt, Ct);
                 msgbox(sprintf('%.2f%%', rec_rate * 100), 'Recognition Rate');
+<<<<<<< HEAD
             catch e
                 disp(e);
                 msgbox('Please train the system first', 'Error');
             end
+=======
+%             catch
+%                 msgbox('Please train the system first', 'Error');
+%             end
+>>>>>>> 3f88aeb71dca484e1a6d1118791c41ac3fd18367
         end
         
 
@@ -47,13 +53,19 @@ function main
 
         if (choice == 4)
             %% Face Recognition
-            try
+%             try
                 load('train.mat', 'Wopt', 'Xt', 'Ct');
                 FaceRec(Wopt, Xt, Ct);
+<<<<<<< HEAD
             catch e
                 disp(e);
                 msgbox('Please train the system first', 'Error');
             end
+=======
+%             catch
+%                 msgbox('Please train the system first', 'Error');
+%             end
+>>>>>>> 3f88aeb71dca484e1a6d1118791c41ac3fd18367
         end
 
         if (choice == 5)
