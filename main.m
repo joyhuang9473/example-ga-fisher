@@ -6,6 +6,8 @@ function main
         Test = 1:100; Test(Train) = [];
         gaCoef = [40 40 1];
     end
+    load_src = 'Wopt,Xt,Ct-((80x60)x(49x50)).mat';
+    save_dst = 'train.mat';
 
     while (1==1)
         choice=menu('Face Recognition System',...
@@ -28,7 +30,7 @@ function main
         if (choice == 2)
             %% Calculate Recognition Rate
             try
-                load('train.mat', 'Wopt', 'Xt', 'Ct');
+                load(load_src, 'Wopt', 'Xt', 'Ct');
                 rec_rate = CalRecRate([], Test, Wopt, Xt, Ct);
                 msgbox(sprintf('%.2f%%', rec_rate * 100), 'Recognition Rate');
             catch e
@@ -42,13 +44,13 @@ function main
             %% Train System
             [Xt, Ct] = TrainDatabase([], Train);
             [Wopt, ~, ~] = GAFisherCore(Xt, Ct, gaCoef);
-            save('train.mat', 'Wopt', 'Xt', 'Ct');
+            save(save_dst, 'Wopt', 'Xt', 'Ct');
         end
 
         if (choice == 4)
             %% Face Recognition
             try
-                load('train.mat', 'Wopt', 'Xt', 'Ct');
+                load(load_src, 'Wopt', 'Xt', 'Ct');
                 FaceRec(Wopt, Xt, Ct);
             catch e
                 disp(e);
