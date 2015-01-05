@@ -2,9 +2,9 @@ function main
     try
         load('coeff.mat');
     catch
-        Train = [1 21 41 61 81];
+        Train = [1 2 3 37 69];
         Test = 1:100; Test(Train) = [];
-        gaCoef = [200 400];
+        gaCoef = [40 40 1];
     end
 
     while (1==1)
@@ -31,7 +31,8 @@ function main
                 load('train.mat', 'Wopt', 'Xt', 'Ct');
                 rec_rate = CalRecRate([], Test, Wopt, Xt, Ct);
                 msgbox(sprintf('%.2f%%', rec_rate * 100), 'Recognition Rate');
-            catch
+            catch e
+                disp(e);
                 msgbox('Please train the system first', 'Error');
             end
         end
@@ -49,7 +50,8 @@ function main
             try
                 load('train.mat', 'Wopt', 'Xt', 'Ct');
                 FaceRec(Wopt, Xt, Ct);
-            catch
+            catch e
+                disp(e);
                 msgbox('Please train the system first', 'Error');
             end
         end
