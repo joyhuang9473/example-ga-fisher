@@ -1,11 +1,31 @@
-function [image, raw] = LoadImage(path, resize_dim, silence)
-    if ~exist('silence', 'var') || isempty(silence)
+function [image, raw] = LoadImage(path, resize_dim, option, FDetect)
+%% loading an image from specific path
+% resize_dim: default is 80 x 60
+% option: [silence mirror], default are [false false]
+%
+% image: resized image (gray)
+% raw: original image
+
+    if exist('option', 'var') && ~isempty(option)
+        silence = logical(option(1));
+        if length(option) > 1
+            mirror = logical(option(2));
+        else
+            mirror = false;
+        end
+    else
+        silence = false;
+        mirror = false;
+    end
+    if ~silence
         fprintf(1, '-loading %s...\n', path);
     end
     image = imread(path);
 
+    if ~exist('FDetect', 'var') || isempty(FDetect)
+        FDetect = vision.CascadeObjectDetector;
+    end
     %Returns Bounding Box values based on number of objects
-    FDetect = vision.CascadeObjectDetector;
     BB = step(FDetect,image);
     % step(Detector,I) returns Bounding Box value that contains [x,y,Height,Width].
 
@@ -15,12 +35,14 @@ function [image, raw] = LoadImage(path, resize_dim, silence)
         image = imcrop(image,BB);
     elseif irow > 1
         N = ndims(BB);
-        if ~exist('silence', 'var') || isempty(silence)
+        if ~silence
       		fprintf(1, '--strange face number: %d\n', N);
         end
-        image = imcrop(image, BB(2,:));
+        % image = imcrop(image, BB(2,:));
+        [~, m] = max(BB(:,3) + BB(:,4));
+        image = imcrop(image, BB(m,:));
     else
-        if ~exist('silence', 'var') || isempty(silence)
+        if ~silence
       		fprintf(1, '--NO face can be detected!!\n');
         end
         [height, width] = size(image);
@@ -28,6 +50,9 @@ function [image, raw] = LoadImage(path, resize_dim, silence)
         image = imcrop(image, BB);
     end
     
+    if mirror
+        image = flip(image, 2);
+    end
     raw = image;
 
     if ~exist('resize_dim', 'var') || isempty(resize_dim)

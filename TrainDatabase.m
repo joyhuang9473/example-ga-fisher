@@ -1,4 +1,4 @@
-function [X, C] = TrainDatabase(TrainDatabasePath, TrainImages, silence)
+function [X, C] = TrainDatabase(TrainDatabasePath, TrainImages, option)
 % Align a set of face images (the training set T1, T2, ... , TM )
 %
 % Description: This function reshapes all 2D images of the training database
@@ -7,6 +7,9 @@ function [X, C] = TrainDatabase(TrainDatabasePath, TrainImages, silence)
 %  
 % 
 % Argument:     TrainDatabasePath      - Path of the training database
+%               TrainImages            - Specific image of training for
+%                                        each class.
+%               option                 - [silence mirror]
 %
 % Returns:      X                      - A 2D matrix, containing all 1D image vectors.
 %                                        Suppose all P images in the training database 
@@ -15,17 +18,12 @@ function [X, C] = TrainDatabase(TrainDatabasePath, TrainImages, silence)
 %               C                      - ClassLabel of each training image.
 %                                        size will be 1xP.
 %
-%%%%%%%%%%%%%%%%%%%%%%%% File management
-
 %  no_folder=size(dir([TrainDatabasePath,'\*']),1)-size(dir([TrainDatabasePath,'\*m']),1)-2;
     no_folder = 49;
     resize_dim = [80 60];
-    [td1, td2] = size(TrainImages);
-    if td1 == 1 || td2 == 1;
-        if td1 == 1 && td2 == 1
+    if size(TrainImages,1) == 1;
+        if size(TrainImages,2) == 1
             TrainImages = 1:TrainImages;
-        elseif td2 == 1
-            TrainImages = TrainImages';
         end
         train = zeros(no_folder, length(TrainImages));
         for i = 1:no_folder
@@ -42,20 +40,34 @@ function [X, C] = TrainDatabase(TrainDatabasePath, TrainImages, silence)
         TrainDatabasePath = uigetdir('TrainDatabase\', 'Select training database path' );
     end
     
-    if ~exist('silence', 'var') || isempty(silence)
-        disp('Loading Faces:');
-        silence = [];
+    if exist('option', 'var') && ~isempty(option)
+        silence = logical(option(1));
+        if length(option) > 1
+            mirror = logical(option(2));
+        else
+            mirror = false;
+        end
+    else
+        silence = false;
+        mirror = false;
+    end
+    option = [silence mirror];
+    if ~silence
+        fprintf(1, 'Loading Faces:\n');
+        if mirror
+            fprintf(1, '\b (in Mirror Mode)\n');
+        end
     end
     
     img_idx = 1;
     for i = 1:size(TrainImages, 1)
         samples = find(TrainImages(i,:));
-        if ~exist('silence', 'var') || isempty(silence)
+        if ~silence
             fprintf(1, 'Class %d: %d samples\n', i, length(samples));
         end
         for s = 1:length(samples)
             img = sprintf('%s\\%d\\%d.bmp',TrainDatabasePath,i,TrainImages(i,s));
-            X(:,img_idx) = LoadImage(img, [], silence);
+            X(:,img_idx) = LoadImage(img, [], option);
             C(img_idx) = i;
             img_idx = img_idx + 1;
         end

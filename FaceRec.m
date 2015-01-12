@@ -1,4 +1,6 @@
 function [ OutputName ] = FaceRec(Wopt, Xt, Ct)
+%% open face recognition menu
+% Wopt, Xt, Ct: see GAFisherCore for more details
 
     % loading name resources
     [name_show, e_name_vl] = initname();
@@ -13,7 +15,7 @@ function [ OutputName ] = FaceRec(Wopt, Xt, Ct)
                     '      Capture Now     ',...
                     'Exit');
                 
-        if (choice ==1)
+        if (choice ==1) %% load an image and recognize it
             Xq = zeros(80 * 60, 1);
             InputName = imgetfile();
             [Xq(:,1), test] = LoadImage(InputName);
@@ -41,7 +43,7 @@ function [ OutputName ] = FaceRec(Wopt, Xt, Ct)
             fprintf(1, 'Student No %d: %s\n', n, OutputName);
         end
 
-        if (choice == 2) % Open webcam
+        if (choice == 2) % Open webcam, realtime system
             fprintf(1, 'real-time recognizing system is now working...\n');
             try
                 format = {'MJPG_640x480', 'RGB24_640x480'};
@@ -115,7 +117,7 @@ function [ OutputName ] = FaceRec(Wopt, Xt, Ct)
             end
         end
         
-        if (choice == 3)
+        if (choice == 3) % exit FaceRec menu
             close all;
             return;
         end

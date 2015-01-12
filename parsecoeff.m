@@ -1,4 +1,10 @@
-function [Train, Test, gaCoef] = parsecoeff(coef)
+function [Train, Test, GAcoef] = parsecoeff(coef)
+%%	function [Train, Test, GAcoef] = parsecoeff(coef)
+%   parse string coefficient
+%   coef: cell array, length = 3
+%         coef{1} = training label, '1 2 3 4 5' or '1 50 60 70 80'
+%         coef{2} = testing labe, same as training label format
+%         coef{3} = GApca coefficient, Gen & Popu & GPU, default is '40 40 1'
     %% Train
     if ~isempty(coef{1})
         array = strsplit(coef{1});
@@ -18,7 +24,7 @@ function [Train, Test, gaCoef] = parsecoeff(coef)
     end
     %% Test
     if ~isempty(coef{2})
-        array = strsplit(coef{1});
+        array = strsplit(coef{2});
         if length(array) > 1
             Test = zeros(1, length(array));
             for i = 1:length(Test)
@@ -38,11 +44,12 @@ function [Train, Test, gaCoef] = parsecoeff(coef)
     %% GA Coef
     if ~isempty(coef{3})
         array = strsplit(coef{3});
-        gaCoef = [str2double(array{1}) str2double(array{2})];
-        gaCoef(1) = min(gaCoef(1), 999);
-        gaCoef(2) = min(gaCoef(2), 999);
+        GAcoef = [str2double(array{1}) str2double(array{2}) str2double(array{3})];
+        GAcoef(1) = min(GAcoef(1), 999);
+        GAcoef(2) = min(GAcoef(2), 999);
+        GAcoef(3) = logical(GAcoef(3));
     else
-        gaCoef = [200 400];
+        GAcoef = [40 40 1];
     end
     %% print result
     fprintf(1, 'Training Images (%d): \n', length(Train));
@@ -53,5 +60,5 @@ function [Train, Test, gaCoef] = parsecoeff(coef)
     for i = 1:length(Test)
         fprintf(1, '\b %d\n', Test(i));
     end
-    fprintf(1, 'GA-PCA: %d %d\n', gaCoef(1), gaCoef(2));
+    fprintf(1, 'GA-PCA: [%d %d %d]\n', GAcoef(1), GAcoef(2), GAcoef(3));
 end

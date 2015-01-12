@@ -1,4 +1,18 @@
 function rec_rate = CalRecRate(DatabasePath, TestImages, W, Xt, Ct, option)
+%% function rec_rate = CalRecRate(DatabasePath, TestImages, W, Xt, Ct, option)
+%	DatabasePath: path, system will call uigetdir if it is empty
+%   TestImages: testing images label,
+%               [1 2 3 4 5] means using image 1 ~ 5 for all classes;
+%               [1 2 3; 2 3 4; 3 4 5] means using image 1 2 3 for class 1,
+%               image 2 3 4 for class 2 ...
+%               [1 2 0 0; 4 0 0 0; 3 4 5 6] means using image 1 2 for
+%               class 1, 4 for class 2 (different sample size) ...
+%   W: optimal projection (which is generate by GAFisherCore)
+%   Xt: training data of W (see TrainDatabase.m for more details)
+%   Ct: label of Xt (see TrainDatabase.m for more details)
+%   option: [batch], using batch mode or not, default value is false
+
+    % init arguments
     disp('Calculate recognition rate...');
     if ~exist('DatabasePath', 'var') || isempty(DatabasePath)
         DatabasePath = uigetdir('TrainDatabase\', 'Select training database path' );
@@ -7,6 +21,7 @@ function rec_rate = CalRecRate(DatabasePath, TestImages, W, Xt, Ct, option)
         option = [false false];
     end
     batch = logical(option(1));
+    % making testing images label...
     no_folder = 49;
     [td1, td2] = size(TestImages);
     if td1 == 1 || td2 == 1;
@@ -21,13 +36,14 @@ function rec_rate = CalRecRate(DatabasePath, TestImages, W, Xt, Ct, option)
         end
         TestImages = train;
     end
+    % testing
     rec_pass = 0; total_test = 0;
     Yt = cvLdaProj(Xt, W);
     for i = 1:size(TestImages,1)
         testimg = find(TestImages(i,:));
         testnum = length(testimg);
         fprintf(1, 'Class %d: %d images\n', i, testnum);
-        if batch
+        if batch % batch mode
             Xq = zeros(size(Xt, 1), testnum);
             for s = 1:testnum
                 img = sprintf('%s\\%d\\%d.bmp',DatabasePath,i,TestImages(i,s));
@@ -40,7 +56,7 @@ function rec_rate = CalRecRate(DatabasePath, TestImages, W, Xt, Ct, option)
             rec_pass = rec_pass + OK;
             fprintf(1, '\b -> %d passed (%.2f%% / %.2f%%)\n', OK,...
                 OK / length(class) * 100, rec_pass / total_test * 100);
-        else
+        else % 1-by-1 mode
             Xq = zeros(size(Xt, 1), 1);
             for s = 1:testnum
                 total_test = total_test + 1;
