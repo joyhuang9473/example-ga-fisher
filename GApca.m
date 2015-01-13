@@ -1,4 +1,4 @@
-function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
+function [Wga, Lga, Wpca, Lpca] = GApca(X, U, M, Sw, ~, Wpca, Lpca, l, coeff)
 %% function [Wga, Lga, Wpca, Lpca] = GApca(X, U, M, Sw, Sb, Wpca, Lpca, l, coeff)
 % (X, U, M, Sw) or (X, U, M, [], [], Wpca, Lpca, l)
 % X: training image = [x1 x2 x3 ... xn] (kxn, k is the dimension of each image)
@@ -7,36 +7,50 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
 % Sw: within-class scatter matrix
 % Sb: between-class scatter matrix (unnecessary)
 % l: rank(Sw)
-% coeff: population & generation of GA, = [popu gene]
+% coeff: population & generation & GPUsupport of GA, = [popu gene gpu]
 % Wga: princomp set after GA-PCA = [wi1 wi2 wi3 ... wil] (kxl, k is ...)
 % Lga: eigenvalues (corresponding to Wga)
 % Wpca: princomp set
 % Lpca: eigenvalues (corresponding to Wpca)
 
-%% init (pca, rank(Sw))
+%% init (pca, rank(Sw), coeff)
     fprintf(1, 'Wpca: processing...');
     if ~exist('Wpca', 'var') || isempty(Wpca)
-        [Wpca, ~, Lpca] = cvPca(Xv);
+        [Wpca, ~, Lpca] = cvPca(X);
     end
+    [Dpc, Npc] = size(Wpca);
     fprintbackspace(13);
-    fprintf(1, '%d x %d\n', size(Wpca, 1), size(Wpca, 2));
+    fprintf(1, '%d x %d\n', Dpc, Npc);
     fprintf(1, 'Rank(Sw): processing...');
     if ~exist('l', 'var') || isempty(l)
-        l = rank(Sw);
+        rankSwTStart = tic();
+        try % using GPU if possible
+            l = gather(rank(gpuArray(Sw)));
+        catch
+            l = rank(Sw);
+        end
+        rankSwTCost = calctime(toc(rankSwTStart));
     end
-    l = max(min(l, size(Wpca,2)), ceil(size(Wpca,2)*0.2));
+    l = max(min(l, Npc), ceil(Npc*0.2));
+    k = ceil((Npc - l) / Npc); % k == 0 if Npc == l
     fprintbackspace(13);
     fprintf(1, '%d\n', l);
+    if exist('rankSwTCost', 'var')
+        fprintf(1, '\b (%s)\n', rankSwTCost);
+    end
     fprintf(1, 'GA-PCA: init...');
-    global W L X U M;
-    W = Wpca; L = Lpca; X = Xv; U = Uv; M = Mv;
-    clear Xv Uv Mv;
-    [~, Npc] = size(W);
     if ~exist('coeff', 'var') || isempty(coeff)
-        coeff = [200 400];
+        coeff = [80 80];
     end
     population = coeff(1);
     generation = coeff(2);
+    GPUsupport = true;
+    if length(coeff) > 2
+        GPUsupport = logical(coeff(3));
+    end
+    GPUsupport = init(Wpca, Lpca, X, U, M, GPUsupport);
+    
+%% init (population, fitness)
     P = zeros(Npc, population);
     F = zeros(1, population);
     P(1:l,:) = 1;
@@ -44,7 +58,7 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
     fprintf(1, 'fitness init... (%3d/%3d)', 1, population);
     F(1) = fitness(P(:,1));
     win = P(:,1); fit = F(1);
-    for i = 2:population
+    for i = 2:(population*k)
         fprintbackspace(9);
         fprintf(1, '(%3d/%3d)', i, population);
         P(:,i) = P(randperm(Npc),i);
@@ -54,18 +68,11 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
         end
     end
     fprintbackspace(25);
+    
 %% main GA
     fprintf(1, '%3d/%3d (00:00:00/??:??:??)', 0, generation);
-    timestart = clock();
+    timestart = tic();
     for n = 1:generation
-        %% print looping detail
-        fprintbackspace(7+20);
-        [current, timepass] = calctime(clock(), timestart);
-        [estimate] = calctime(timepass / n * (generation - n + 1));
-        fprintf(1, '%3d/%3d (%s/%s)', n, generation, current, estimate);
-        if Npc == l
-            continue;
-        end
         fprintf(1, '\n>> ');
         %% selection
         fprintf(1, 'selection...');
@@ -81,7 +88,7 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
         end
         %% crossover
         fprintf(1, 'crossover...');
-        for i = 1:(c/2)
+        for i = 1:(c/2*k)
         try
             p1 = pool(i + i - 1);
             p2 = pool(i + i);
@@ -96,7 +103,7 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
         %% mutation
         fprintf(1, 'mutation...');
         m = ceil((0.23 - 0.2 * (n / generation)) * population * Npc);
-        for i = 1:m
+        for i = 1:(m*k)
         try
             select = randi(population);
             mp1 = randi(Npc);
@@ -110,7 +117,7 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
         end
         %% calculate fitness
         fprintf(1, 'fitness...');
-        for i = 1:population
+        for i = 1:(population*k)
             fprintf(1, ' (%3d/%3d)', i, population);
             F(:,i) = fitness(P(:,i));
             if F(i) > fit
@@ -119,31 +126,69 @@ function [Wga, Lga, Wpca, Lpca] = GApca(Xv, Uv, Mv, Sw, ~, Wpca, Lpca, l, coeff)
             fprintbackspace(10);
         end
         fprintbackspace(12+12+11+10+4);
+        %% print estimate time detail
+        fprintbackspace(7+20);
+        [current, timepass] = calctime(toc(timestart));
+        [estimate] = calctime(timepass / n * (generation - n));
+        fprintf(1, '%3d/%3d (%s/%s)', n, generation, current, estimate);
     end
 	fprintbackspace(20+7);
     fprintf(1, '[%d %d]', population, generation);
-    fprintf(1, ' (%s)\n', calctime(clock(), timestart));
+    fprintf(1, ' (%s)\n', calctime(toc(timestart)));
+    
 %% result
+    if GPUsupport
+        fprintf(1, '\b GPU+\n');
+    end
     fprintf(1, 'Fitness: %.2f\n', fit);
-    Wga = W(:, win == 1);
-    Lga = L(win == 1);
-    clear W L X U M;
+    Wga = Wpca(:, win == 1);
+    Lga = Lpca(win == 1);
     fprintf(1, 'Wga: %d x %d\n', size(Wga,1), size(Wga,2));
+    init([]);
+end
+
+function GPUAcc = init(Wpca, Lpca, Xv, Uv, Mv, GPUAcc)
+    global W L X U M N K sumL GPUsupport;
+    if exist('Wpca', 'var') && ~isempty(Wpca)
+        try
+            if logical(GPUAcc)
+                W = gpuArray(Wpca);
+                L = gpuArray(Lpca);
+                X = gpuArray(Xv);
+                U = gpuArray(Uv);
+                M = gpuArray(Mv);
+                GPUAcc = true;
+            else
+                GPUAcc = false;
+            end
+        catch
+            GPUAcc = false;
+        end
+        if GPUAcc == false
+            W = Wpca; L = Lpca; X = Xv; U = Uv; M = Mv;
+        end
+        N = size(X, 2);
+        K = size(U, 2);
+        sumL = sum(L);
+        GPUsupport = GPUAcc;
+    else
+        clear global W L X U M N K sumL GPUsupport;
+    end
 end
 
 function F = fitness(enc)
-    global W L X U M;
-    [~, N] = size(X);
-    K = size(U, 2);
-    %% generate P = (wi1, wi2, wi3, ..., wil)
-    P = W(:,enc == 1);
+    global W L X U M N K sumL GPUsupport;
+    %% P = (wi1, wi2, wi3, ..., wil)
+    chromo = (enc == 1);
+    P = W(:,chromo);
     P = P.';
     %% Fg
     m = P * M;
-    sigma = zeros(size(P,1));
-    for i = 1:N
+    t = (P * X(:,1)) - m;
+    sigma = (t * t.');
+    for i = 2:N
         t = (P * X(:,i)) - m;
-        sigma = sigma + (t * t');
+        sigma = sigma + (t * t.');
     end
     sigma = pinv(sigma / N);
     d = inf;
@@ -155,8 +200,11 @@ function F = fitness(enc)
     %% Fa
     Fa = 1;
     %% Fc
-    SE = sum(L(enc == 1)) / sum(L);
+    SE = sum(L(chromo)) / sumL;
     Fc = exp(20 * (SE - 0.99));
     %% Fitness result
     F = Fg * Fa * Fc;
+    if GPUsupport
+        F = gather(F);
+    end
 end

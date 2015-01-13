@@ -1,49 +1,21 @@
-function class = Recognition(Wopt, M, U, image, isUpj)
-%% recognize an image
+function [class, bboxes] = Recognition(Wopt, Xt, Ct, frame, bboxes)
+%% recognize faces in given image
+    if ~exist('BB', 'var') || isempty(bboxes)
+        FDetect = vision.CascadeObjectDetector;
+        bboxes = step(FDetect,frame);
+    end
+    resize_dim = [80 60];
+    resize = resize_dim(1) * resize_dim(2);
+    frame = rgb2gray(frame);
 
-%% projection
-    if exist('isUpj', 'var') && isUpj == 1
-        Upj = U;
-    else
-        % Mpj = Wopt.' * M;
-        Upj = zeros(size(Wopt, 2), size(U, 2));
-        for i = 1:size(U, 2)
-            Upj(:,i) = Wopt.' * U(:,i);
-        end
+    Xq = zeros(resize, size(bboxes, 1));
+    for i = 1:size(Xq, 2)
+        face = imcrop(frame, bboxes(i,:));
+        face = imresize(face, resize_dim);
+        Xq(:,i) = reshape(face', resize, 1);
     end
-    
-%% image pre-process
-    image = double(image);
-	image = imresize(image, [80 60]);
-	image = rgb2gray(image);
-    [d1, d2] = size(image);
-    x = reshape(image', d1 * d2, 1);
-    
-    diff = x - M;
-    proj = Wopt.' * diff;
-    
-%% calc dist
-	mdist = inf;
-    class = 0;
-    K = size(Upj, 2);
-    for i = 1:K
-        d = ( norm( proj - Upj(:,i) ) )^2;
-        if d < mdist
-            mdist = d;
-            class = i;
-        end
-    end
-    
-%     class = 0;
-%     mdist = inf;
-%     for i = 1:size(U, 2)
-%         d = 0;
-%         for j = 1:length(proj)
-%             d = d + (U(j,i) - proj(j)) ^ 2;
-%         end
-%         if d < mdist
-%             class = i;
-%             mdist = d;
-%         end
-%     end
+
+    Yt = cvLdaProj(Xt, Wopt);
+    Yq = cvLdaProj(Xq, Wopt);
+    [class, ~] = cvKnn(Yq, Yt, Ct, 1);
 end
